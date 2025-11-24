@@ -1,0 +1,93 @@
+/**
+ * WeRocket Tools - Admin Styles
+ */
+
+/* Reset WordPress admin defaults for our container */
+.werocket-wrap {
+    margin-left: -20px;
+    padding: 0 20px;
+}
+
+.werocket-wrap * {
+    box-sizing: border-box;
+}
+
+/* Override WordPress admin form styles */
+.werocket-wrap input[type="text"],
+.werocket-wrap input[type="email"],
+.werocket-wrap input[type="url"],
+.werocket-wrap input[type="tel"],
+.werocket-wrap input[type="password"],
+.werocket-wrap input[type="number"],
+.werocket-wrap input[type="time"],
+.werocket-wrap textarea,
+.werocket-wrap select {
+    width: 100%;
+    max-width: none;
+    font-size: 14px;
+}
+
+.werocket-wrap input[type="color"] {
+    cursor: pointer;
+}
+
+/* Tab active state transition */
+.werocket-wrap .tab-link {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Module toggle animation */
+.werocket-wrap .module-toggle {
+    transition: background-color 0.3s ease;
+}
+
+/* Form submission loading state */
+.werocket-wrap button[type="submit"].loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.werocket-wrap button[type="submit"].loading svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Toast notification */
+#werocket-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Day hours toggle */
+.day-closed-toggle:checked ~ .day-hours {
+    opacity: 0.5;
+}
+
+.day-hours input:disabled {
+    background-color: #f3f4f6;
+}
+
+/* Card hover effects */
+.werocket-wrap .hover\:shadow-md {
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+    .werocket-wrap {
+        margin-left: -10px;
+        padding: 0 10px;
+    }
+
+    .werocket-wrap .grid {
+        grid-template-columns: 1fr !important;
+    }
+}

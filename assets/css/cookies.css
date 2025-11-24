@@ -1,0 +1,260 @@
+/**
+ * WeRocket Tools - Cookie Banner Styles
+ */
+
+.werocket-cookie-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 999999;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.werocket-cookie-banner--bottom {
+    bottom: 0;
+}
+
+.werocket-cookie-banner--top {
+    top: 0;
+}
+
+.werocket-cookie-banner--center {
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.werocket-cookie-banner__container {
+    background: #fff;
+    padding: 20px 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.werocket-cookie-banner--bar .werocket-cookie-banner__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.werocket-cookie-banner--box .werocket-cookie-banner__container,
+.werocket-cookie-banner--center .werocket-cookie-banner__container {
+    max-width: 500px;
+    margin: 20px;
+    border-radius: 12px;
+}
+
+.werocket-cookie-banner__content {
+    flex: 1;
+    min-width: 280px;
+}
+
+.werocket-cookie-banner__title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.werocket-cookie-banner__message {
+    margin: 0;
+    color: #6b7280;
+}
+
+.werocket-cookie-banner__link {
+    color: var(--werocket-primary, #059669);
+    text-decoration: underline;
+}
+
+.werocket-cookie-banner__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+.werocket-cookie-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.werocket-cookie-btn--primary {
+    background: var(--werocket-primary, #059669);
+    color: #fff;
+}
+
+.werocket-cookie-btn--primary:hover {
+    opacity: 0.9;
+}
+
+.werocket-cookie-btn--secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.werocket-cookie-btn--secondary:hover {
+    background: #e5e7eb;
+}
+
+.werocket-cookie-btn--outline {
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.werocket-cookie-btn--outline:hover {
+    background: #f9fafb;
+}
+
+/* Modal */
+.werocket-cookie-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.werocket-cookie-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.werocket-cookie-modal__content {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.werocket-cookie-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.werocket-cookie-modal__header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.werocket-cookie-modal__close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.werocket-cookie-modal__close:hover {
+    color: #6b7280;
+}
+
+.werocket-cookie-modal__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+}
+
+.werocket-cookie-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Categories */
+.werocket-cookie-category {
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.werocket-cookie-category:last-child {
+    margin-bottom: 0;
+}
+
+.werocket-cookie-category__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.werocket-cookie-category__label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+.werocket-cookie-category__label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--werocket-primary, #059669);
+}
+
+.werocket-cookie-category__badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 9999px;
+}
+
+.werocket-cookie-category__description {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .werocket-cookie-banner--bar .werocket-cookie-banner__container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .werocket-cookie-banner__actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .werocket-cookie-btn {
+        flex: 1;
+    }
+}

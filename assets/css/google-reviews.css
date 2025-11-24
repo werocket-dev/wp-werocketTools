@@ -1,0 +1,287 @@
+/**
+ * WeRocket Tools - Google Reviews Styles
+ */
+
+.werocket-reviews {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.werocket-reviews__empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Grid Layout */
+.werocket-reviews--grid .werocket-reviews__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* List Layout */
+.werocket-reviews--list .werocket-reviews__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Carousel Layout */
+.werocket-reviews--carousel .werocket-reviews__grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding-bottom: 16px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.werocket-reviews--carousel .werocket-review {
+    flex: 0 0 320px;
+    scroll-snap-align: start;
+}
+
+/* Review Card */
+.werocket-review {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    gap: 16px;
+}
+
+.werocket-reviews--list .werocket-review {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.werocket-reviews--grid .werocket-review {
+    flex-direction: column;
+}
+
+/* Avatar */
+.werocket-review__avatar {
+    flex-shrink: 0;
+}
+
+.werocket-review__avatar img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Content */
+.werocket-review__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.werocket-review__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.werocket-review__author {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 15px;
+}
+
+.werocket-review__date {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* Rating */
+.werocket-review__rating {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 12px;
+}
+
+.werocket-review__star {
+    color: #d1d5db;
+    font-size: 16px;
+}
+
+.werocket-review__star--filled {
+    color: #fbbf24;
+}
+
+/* Text */
+.werocket-review__text {
+    margin: 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Business Info Styles */
+.werocket-business-info {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.werocket-business-info__name {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.werocket-business-info__description {
+    margin: 0 0 20px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.werocket-business-info__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.werocket-business-info__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.werocket-business-info__item:last-child {
+    border-bottom: none;
+}
+
+.werocket-business-info__icon {
+    width: 20px;
+    height: 20px;
+    color: #6b7280;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.werocket-business-info__item a {
+    color: #059669;
+    text-decoration: none;
+}
+
+.werocket-business-info__item a:hover {
+    text-decoration: underline;
+}
+
+.werocket-business-info__social {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.werocket-business-info__social-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.werocket-business-info__social-link:hover {
+    background: #e5e7eb;
+}
+
+/* Business Hours Styles */
+.werocket-business-hours {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.werocket-business-hours__title {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.werocket-business-hours__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.werocket-business-hours__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+.werocket-business-hours__item:nth-child(odd) {
+    background: #f9fafb;
+}
+
+.werocket-business-hours__item--today {
+    background: #eef2ff !important;
+    font-weight: 500;
+}
+
+.werocket-business-hours__day {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+}
+
+.werocket-business-hours__badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: #059669;
+    color: #fff;
+    border-radius: 9999px;
+}
+
+.werocket-business-hours__time {
+    color: #6b7280;
+}
+
+.werocket-business-hours__closed {
+    color: #ef4444;
+}
+
+/* Map Styles */
+.werocket-business-map__container,
+.werocket-business-map__iframe {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.werocket-business-map__notice {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+    color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .werocket-reviews--grid .werocket-reviews__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .werocket-review {
+        flex-direction: column;
+    }
+}
