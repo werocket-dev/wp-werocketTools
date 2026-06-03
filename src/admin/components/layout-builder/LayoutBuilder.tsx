@@ -48,7 +48,7 @@ export function LayoutBuilder({ watch, setValue, register }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Disposition</CardTitle>
+        <CardTitle className="font-bold">Disposition</CardTitle>
         <CardDescription>Personnalisation complète par device — comme dans Webflow</CardDescription>
       </CardHeader>
       <CardContent>

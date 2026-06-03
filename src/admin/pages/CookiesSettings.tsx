@@ -20,9 +20,11 @@ import {
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
-import { ModuleHeader } from '../components/ModuleHeader'
+import { useRegisterSaveForm } from '../context/SaveContext'
 import { CookiesPreview } from '../components/CookiesPreview'
 import type { CookiesSettings, CookieService } from '@/lib/types'
+
+const FORM_ID = 'wr-form-cookies'
 
 type ServiceWithCsv = CookieService & { _cookies_csv: string }
 
@@ -53,7 +55,7 @@ const FALLBACK_META: ServiceMeta = { Icon: IconCookie, color: 'var(--primary)', 
 
 export function CookiesSettings() {
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { setSaving } = useRegisterSaveForm(FORM_ID)
   const [services, setServices] = useState<ServiceWithCsv[]>([])
 
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormValues>()
@@ -107,12 +109,7 @@ export function CookiesSettings() {
   )
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <ModuleHeader
-        title="Gestion des Cookies"
-        description="Bandeau de consentement RGPD avec Google Consent Mode v2"
-        saving={saving}
-      />
+    <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
       <Tabs defaultValue="general">
         <TabsList className="flex flex-wrap h-auto w-fit rounded-3xl">
@@ -129,7 +126,7 @@ export function CookiesSettings() {
         <TabsContent value="general">
           <Card>
             <CardHeader>
-              <CardTitle>Cookie de stockage</CardTitle>
+              <CardTitle className="font-bold">Cookie de stockage</CardTitle>
               <CardDescription>Paramètres du cookie de consentement Klaro</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,7 +157,7 @@ export function CookiesSettings() {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Politique de consentement</CardTitle>
+                <CardTitle className="font-bold">Politique de consentement</CardTitle>
                 <CardDescription>Comment le bandeau interagit avec les visiteurs</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border/60 py-0">
@@ -172,7 +169,7 @@ export function CookiesSettings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Éléments visibles</CardTitle>
+                <CardTitle className="font-bold">Éléments visibles</CardTitle>
                 <CardDescription>Masquer certains boutons ou liens du bandeau</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border/60 py-0">
@@ -184,7 +181,7 @@ export function CookiesSettings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Disposition &amp; rendu</CardTitle>
+                <CardTitle className="font-bold">Disposition &amp; rendu</CardTitle>
                 <CardDescription>Affichage et organisation visuelle du bandeau</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border/60 py-0">
@@ -203,7 +200,7 @@ export function CookiesSettings() {
             <div className="space-y-4 lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Disposition</CardTitle>
+                  <CardTitle className="font-bold">Disposition</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Thème">
@@ -233,7 +230,7 @@ export function CookiesSettings() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Couleurs personnalisées</CardTitle>
+                  <CardTitle className="font-bold">Couleurs personnalisées</CardTitle>
                   <CardDescription>Actives uniquement avec le thème "Personnalisé"</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,7 +269,7 @@ export function CookiesSettings() {
             <div className="space-y-4 lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Notice principale</CardTitle>
+                  <CardTitle className="font-bold">Notice principale</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Field label="Titre">
@@ -286,7 +283,7 @@ export function CookiesSettings() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Boutons</CardTitle>
+                  <CardTitle className="font-bold">Boutons</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Field label="Tout accepter"><Input {...register('texts.accept_all')} /></Field>
@@ -300,7 +297,7 @@ export function CookiesSettings() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Liens légaux</CardTitle>
+                  <CardTitle className="font-bold">Liens légaux</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field label="Texte politique de confidentialité">
@@ -320,7 +317,7 @@ export function CookiesSettings() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Finalités</CardTitle>
+                  <CardTitle className="font-bold">Finalités</CardTitle>
                   <CardDescription>Titres et descriptions des catégories de consentement</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -350,7 +347,7 @@ export function CookiesSettings() {
         <TabsContent value="services">
           <Card>
             <CardHeader>
-              <CardTitle>Services de tracking</CardTitle>
+              <CardTitle className="font-bold">Services de tracking</CardTitle>
               <CardDescription>
                 {services.filter(s => s.enabled).length} service(s) actif(s) sur {services.length}
                 {' · '}Cliquez sur une ligne pour configurer
@@ -494,7 +491,7 @@ export function CookiesSettings() {
         <TabsContent value="gcm">
           <Card>
             <CardHeader>
-              <CardTitle>Google Consent Mode v2</CardTitle>
+              <CardTitle className="font-bold">Google Consent Mode v2</CardTitle>
               <CardDescription>Paramètres des défauts de consentement envoyés à Google avant toute interaction</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -535,7 +532,7 @@ export function CookiesSettings() {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>CSS & classes</CardTitle>
+                <CardTitle className="font-bold">CSS & classes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Field label="Classe CSS additionnelle">
@@ -549,7 +546,7 @@ export function CookiesSettings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Callbacks JavaScript</CardTitle>
+                <CardTitle className="font-bold">Callbacks JavaScript</CardTitle>
                 <CardDescription>Code exécuté après acceptation ou refus (usage avancé)</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -564,7 +561,7 @@ export function CookiesSettings() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Shortcodes disponibles</CardTitle>
+                <CardTitle className="font-bold">Shortcodes disponibles</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div>

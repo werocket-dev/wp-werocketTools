@@ -51,6 +51,18 @@ function werocket_tools_init(): void {
 }
 add_action('plugins_loaded', __NAMESPACE__ . '\werocket_tools_init');
 
+// Déclare la compatibilité WooCommerce HPOS (Custom Order Tables).
+// Requis car le module Rétractation interagit avec les commandes via l'API WC.
+add_action('before_woocommerce_init', static function (): void {
+    if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+            'custom_order_tables',
+            __FILE__,
+            true
+        );
+    }
+});
+
 // Activation hook
 register_activation_hook(__FILE__, function(): void {
     Core\Activator::activate();

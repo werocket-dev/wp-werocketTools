@@ -122,6 +122,24 @@
   --font-heading: var(--font-sans);
 }
 
+/* ─── Cursor pointer sur tous les éléments interactifs ─── */
+#werocket-app button,
+#werocket-app [role="button"],
+#werocket-app a,
+#werocket-app label,
+#werocket-app [data-slot="switch"],
+#werocket-app [data-slot="checkbox"],
+#werocket-app select,
+#werocket-app [data-radix-collection-item],
+#werocket-app [data-state],
+#werocket-app [tabindex="0"] {
+  cursor: pointer;
+}
+#werocket-app button:disabled,
+#werocket-app [aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 /* ─── Isolation : nos conteneurs React seulement ─── */
 #werocket-app,
 #werocket-app *,

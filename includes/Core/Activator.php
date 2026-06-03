@@ -15,6 +15,7 @@ class Activator {
             'active_modules' => [
                 'cookies' => true,
                 'google_reviews' => true,
+                'retractation' => true,
             ],
         ];
 
@@ -23,6 +24,9 @@ class Activator {
         }
 
         self::inject_gh_token_in_wpconfig();
+
+        // Pré-enregistre l'endpoint Rétractation pour qu'il fonctionne dès l'activation.
+        add_rewrite_endpoint('retractation', EP_PAGES);
 
         flush_rewrite_rules();
     }

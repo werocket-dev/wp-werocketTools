@@ -15,10 +15,10 @@ export function Header({ children }: Props) {
       style={{ backgroundImage: `url(${pluginUrl}assets/images/banner.jpg)` }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" aria-hidden />
-      <div className="relative flex items-center justify-between">
+      <div className="relative flex items-end gap-3">
         <img src={`${pluginUrl}assets/images/logo.png`} alt="WeRocket Tools" className="h-12" />
-        <Badge variant="secondary" className="h-9 gap-1.5 px-3.5 text-sm backdrop-blur bg-background/80">
-          <IconBolt size={15} className="text-primary" />
+        <Badge variant="secondary" className="h-7 gap-1 px-2.5 text-xs backdrop-blur bg-background/80 mb-0.5">
+          <IconBolt size={12} className="text-primary" />
           <span className="font-medium">v {version}</span>
         </Badge>
       </div>
