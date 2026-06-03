@@ -23,36 +23,6 @@ const WOO_VARS = {
   '--ring': '#873EFF',
 } as React.CSSProperties
 
-function WooIcon() {
-  return (
-    <svg width="28" height="18" viewBox="0 0 56 36" fill="none" aria-hidden>
-      {/* Speech bubble */}
-      <rect width="56" height="28" rx="7" fill="currentColor" />
-      <path d="M37 28 L34 36 L31 28" fill="currentColor" />
-      {/* "woo" text */}
-      <text
-        x="6" y="20"
-        fill="white"
-        fontSize="14"
-        fontWeight="700"
-        fontFamily="'Helvetica Neue', Helvetica, Arial, sans-serif"
-        letterSpacing="-0.3"
-      >
-        woo
-      </text>
-    </svg>
-  )
-}
-
-function WooBadge() {
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary text-primary-foreground">
-      <WooIcon />
-      WooCommerce
-    </span>
-  )
-}
-
 export function ModuleCard({ module, onToggle, onNavigate }: Props) {
   const [loading, setLoading] = useState(false)
   const isWoo = getModuleCategory(module.id) === 'woocommerce'
@@ -79,7 +49,7 @@ export function ModuleCard({ module, onToggle, onNavigate }: Props) {
               className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 [&_svg]:size-5"
               dangerouslySetInnerHTML={{ __html: module.icon }}
             />
-            <CardTitle className="text-base">{module.name}</CardTitle>
+            <CardTitle className="text-base font-bold">{module.name}</CardTitle>
           </div>
           <CardAction>
             <Switch
@@ -91,13 +61,10 @@ export function ModuleCard({ module, onToggle, onNavigate }: Props) {
           </CardAction>
         </CardHeader>
         <CardContent className="flex-1 space-y-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={module.active ? 'default' : 'secondary'}>
-              <span className={`w-1.5 h-1.5 rounded-full ${module.active ? 'bg-primary-foreground' : 'bg-muted-foreground/60'}`} />
-              {module.active ? 'Actif' : 'Inactif'}
-            </Badge>
-            {isWoo && <WooBadge />}
-          </div>
+          <Badge variant={module.active ? 'default' : 'secondary'}>
+            <span className={`w-1.5 h-1.5 rounded-full ${module.active ? 'bg-primary-foreground' : 'bg-muted-foreground/60'}`} />
+            {module.active ? 'Actif' : 'Inactif'}
+          </Badge>
           <CardDescription className="leading-relaxed">{module.description}</CardDescription>
         </CardContent>
         <CardFooter className="mt-auto">

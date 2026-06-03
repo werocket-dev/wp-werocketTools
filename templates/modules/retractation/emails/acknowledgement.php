@@ -29,8 +29,9 @@ $accent_soft = \WeRocket\Tools\Modules\Retractation\Frontend::hex_to_rgba($accen
 $ink         = '#1A1D1F';
 $ink_muted   = '#5F6368';
 $ink_subtle  = '#9AA0A6';
-$bg_warm     = '#FAF8F4';
-$bg_alt      = '#F4F1EB';
+$bg_warm     = (string) ($wr_settings['email_bg_color'] ?? '#FAF8F4');
+$surface     = (string) ($wr_settings['email_surface_color'] ?? '#FFFFFF');
+$bg_alt      = \WeRocket\Tools\Modules\Retractation\Frontend::darken_hex($bg_warm, 0.97); // légère teinte plus profonde pour les zones secondaires
 $border      = '#E8EAED';
 $logo_url    = (string) ($wr_settings['email_logo_url'] ?? '');
 
@@ -99,7 +100,7 @@ $font_body    = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helveti
 
                 <!-- ── Main panel ── -->
                 <tr>
-                    <td class="wr-mail-panel" style="background:#FFFFFF;border:1px solid <?php echo esc_attr($border); ?>;border-radius:24px;padding:42px 40px;box-shadow:0 24px 64px -32px rgba(26,29,31,0.12);">
+                    <td class="wr-mail-panel" style="background:<?php echo esc_attr($surface); ?>;border:1px solid <?php echo esc_attr($border); ?>;border-radius:24px;padding:42px 40px;box-shadow:0 24px 64px -32px rgba(26,29,31,0.12);">
 
                         <!-- Top accent bar -->
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -191,7 +192,7 @@ $font_body    = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helveti
                             <h2 class="wr-mail-h2" style="font-family:<?php echo esc_attr($font_display); ?>;font-size:18px;font-weight:500;letter-spacing:-0.01em;color:<?php echo esc_attr($ink); ?>;margin:0 0 14px;">
                                 <?php esc_html_e('Articles concernés', 'werocket-tools'); ?>
                             </h2>
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFFFFF;border:1px solid <?php echo esc_attr($border); ?>;border-radius:14px;margin:0 0 28px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:<?php echo esc_attr($surface); ?>;border:1px solid <?php echo esc_attr($border); ?>;border-radius:14px;margin:0 0 28px;">
                                 <?php foreach ($items as $i => $it) : ?>
                                     <tr>
                                         <td style="padding:13px 18px;<?php echo $i > 0 ? 'border-top:1px solid ' . esc_attr($border) . ';' : ''; ?>">

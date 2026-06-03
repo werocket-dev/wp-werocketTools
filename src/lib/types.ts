@@ -74,6 +74,8 @@ export interface RetractationSettings {
   show_legal_notice: boolean
   frontend_color: string
   email_color: string
+  email_bg_color: string
+  email_surface_color: string
   email_logo_id: number
   email_logo_url: string
 }

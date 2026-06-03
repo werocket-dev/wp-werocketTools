@@ -12,12 +12,14 @@ import {
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { openMediaPicker } from '@/lib/wp-media'
-import { ModuleHeader } from '../components/ModuleHeader'
+import { useRegisterSaveForm } from '../context/SaveContext'
 import type { RetractationSettings as TRetractationSettings } from '@/lib/types'
+
+const FORM_ID = 'wr-form-retractation'
 
 export function RetractationSettings() {
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { setSaving } = useRegisterSaveForm(FORM_ID)
   const { register, handleSubmit, setValue, watch, reset } = useForm<TRetractationSettings>()
 
   useEffect(() => {
@@ -62,26 +64,27 @@ export function RetractationSettings() {
   const siteUrl = window.location.origin
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <ModuleHeader
-        title="Rétractation (WooCommerce)"
-        description="Formulaire de rétractation en ligne conforme à l'obligation B2C 2026"
-        saving={saving}
-      />
+    <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-      <Card className="border-amber-200 bg-amber-50/40 dark:bg-amber-950/20">
-        <CardContent className="flex gap-3 py-4">
-          <IconAlertTriangle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-sm space-y-1">
-            <p className="font-medium text-foreground">À valider par un juriste avant mise en production</p>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              Ce module s'inscrit dans la continuité du droit existant (Code de la consommation, art. L221-18 et s. ;
-              formulaire type R221-1 ; AR support durable L221-21). La date d'entrée en application et la rédaction des
-              CGV doivent être validées par un juriste.
+      <div
+        role="alert"
+        className="relative overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100/60 shadow-sm dark:border-amber-800/60 dark:from-amber-950/40 dark:to-amber-900/30"
+      >
+        <div className="absolute left-0 inset-y-0 w-1.5 bg-amber-500 dark:bg-amber-400" aria-hidden />
+        <div className="flex items-start gap-4 px-5 py-4 pl-6">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white shadow ring-4 ring-amber-200/70 dark:bg-amber-400 dark:text-amber-950 dark:ring-amber-700/40">
+            <IconAlertTriangle className="size-5" />
+          </div>
+          <div className="space-y-1.5 min-w-0">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+              À valider par un juriste avant mise en production
+            </p>
+            <p className="text-[13px] leading-relaxed text-amber-800/90 dark:text-amber-200/90">
+              Ce module s'inscrit dans la continuité du droit existant (Code de la consommation, art. <strong>L221-18 et s.</strong> ; formulaire type <strong>R221-1</strong> ; AR support durable <strong>L221-21</strong>). La date d'entrée en application et la rédaction des CGV doivent être validées par un juriste.
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
@@ -135,36 +138,68 @@ export function RetractationSettings() {
           <CardTitle className="flex items-center gap-2"><IconPalette size={16} /> Identité visuelle</CardTitle>
           <CardDescription>Couleurs d'accent et logo email pour aligner le module à votre marque</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <CardContent className="space-y-6">
+
+          {/* ── Formulaire client ── */}
+          <section>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Formulaire client (My Account)
+              </span>
+              <span className="h-px flex-1 bg-border/60" />
+            </div>
             <ColorField
-              label="Couleur d'accent — formulaire client"
-              description="Appliquée au formulaire de la page Mon Compte (titre italique, boutons, focus, étapes)."
+              label="Couleur d'accent"
+              description="Titre italique, étapes, boutons, focus, ticket de référence."
               value={watch('frontend_color') ?? '#0F766E'}
               onChange={v => setValue('frontend_color', v)}
             />
-            <ColorField
-              label="Couleur d'accent — emails"
-              description="Appliquée aux emails d'accusé de réception et de notification marchand."
-              value={watch('email_color') ?? '#0F766E'}
-              onChange={v => setValue('email_color', v)}
-            />
-          </div>
+          </section>
 
-          <div className="pt-3 border-t border-border/60">
-            <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
-              <IconPhoto size={13} />
-              Logo dans les emails
-            </Label>
-            <LogoPicker
-              url={watch('email_logo_url')}
-              onPick={handleSelectLogo}
-              onClear={handleClearLogo}
-            />
-            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
-              S'affiche en en-tête des emails (envoyés au client et au marchand). Format conseillé : PNG/SVG, hauteur ≤ 80px. Si vide, le nom du site est affiché en texte.
-            </p>
-          </div>
+          {/* ── Emails ── */}
+          <section>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Emails (client + marchand)
+              </span>
+              <span className="h-px flex-1 bg-border/60" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ColorField
+                label="Couleur d'accent"
+                description="Barre, ticket, badges, liens."
+                value={watch('email_color') ?? '#0F766E'}
+                onChange={v => setValue('email_color', v)}
+              />
+              <ColorField
+                label="Couleur de fond"
+                description="Arrière-plan général de l'email (autour du panneau)."
+                value={watch('email_bg_color') ?? '#FAF8F4'}
+                onChange={v => setValue('email_bg_color', v)}
+              />
+              <ColorField
+                label="Couleur du panneau"
+                description="Carte centrale qui contient le contenu."
+                value={watch('email_surface_color') ?? '#FFFFFF'}
+                onChange={v => setValue('email_surface_color', v)}
+              />
+            </div>
+
+            <div className="mt-5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+                <IconPhoto size={13} />
+                Logo en en-tête
+              </Label>
+              <LogoPicker
+                url={watch('email_logo_url')}
+                onPick={handleSelectLogo}
+                onClear={handleClearLogo}
+              />
+              <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+                Format conseillé : PNG/SVG, hauteur ≤ 80px. Si vide, le nom du site est affiché en texte.
+              </p>
+            </div>
+          </section>
         </CardContent>
       </Card>
 

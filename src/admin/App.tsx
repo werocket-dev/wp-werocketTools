@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { Header } from './components/Header'
 import { TabsNav } from './components/TabsNav'
+import { GlobalSaveButton } from './components/GlobalSaveButton'
+import { SaveProvider } from './context/SaveContext'
 import { Dashboard } from './pages/Dashboard'
 import { CookiesSettings } from './pages/CookiesSettings'
 import { ReviewsSettings } from './pages/ReviewsSettings'
@@ -39,28 +41,33 @@ export function App() {
   const pageProps = { modules, onToggle: handleToggle }
 
   return (
-    <div id="werocket-app" className="werocket-wrap">
-      <Header>
-        {!loading && (
-          <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />
+    <SaveProvider>
+      <div id="werocket-app" className="werocket-wrap">
+        <Header>
+          {!loading && (
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />
+              <GlobalSaveButton />
+            </div>
+          )}
+        </Header>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 mr-4">
+            <IconLoader2 size={20} className="animate-spin" />
+            <span className="text-sm">Chargement...</span>
+          </div>
+        ) : (
+          <div className="mr-4">
+            {tab === 'dashboard' && <Dashboard {...pageProps} onNavigate={navigate} />}
+            {tab === 'cookies' && <CookiesSettings />}
+            {tab === 'google_reviews' && <ReviewsSettings />}
+            {tab === 'retractation' && <RetractationSettings />}
+          </div>
         )}
-      </Header>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 mr-4">
-          <IconLoader2 size={20} className="animate-spin" />
-          <span className="text-sm">Chargement...</span>
-        </div>
-      ) : (
-        <div className="mr-4">
-          {tab === 'dashboard' && <Dashboard {...pageProps} onNavigate={navigate} />}
-          {tab === 'cookies' && <CookiesSettings />}
-          {tab === 'google_reviews' && <ReviewsSettings />}
-          {tab === 'retractation' && <RetractationSettings />}
-        </div>
-      )}
-
-      <Toaster richColors position="bottom-right" />
-    </div>
+        <Toaster richColors position="bottom-right" />
+      </div>
+    </SaveProvider>
   )
 }

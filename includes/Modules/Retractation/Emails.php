@@ -108,8 +108,9 @@ class Emails {
         $ink         = '#1A1D1F';
         $ink_muted   = '#5F6368';
         $ink_subtle  = '#9AA0A6';
-        $bg_warm     = '#FAF8F4';
-        $bg_alt      = '#F4F1EB';
+        $bg_warm     = (string) ($settings['email_bg_color'] ?? '#FAF8F4');
+        $surface     = (string) ($settings['email_surface_color'] ?? '#FFFFFF');
+        $bg_alt      = Frontend::darken_hex($bg_warm, 0.97);
         $border      = '#E8EAED';
 
         $font_display = "'Fraunces', Georgia, 'Times New Roman', serif";
@@ -157,7 +158,7 @@ class Emails {
 
                 <!-- Panel -->
                 <tr>
-                    <td style="background:#FFFFFF;border:1px solid <?php echo esc_attr($border); ?>;border-radius:20px;padding:32px 34px;box-shadow:0 12px 32px -16px rgba(26,29,31,0.10);">
+                    <td style="background:<?php echo esc_attr($surface); ?>;border:1px solid <?php echo esc_attr($border); ?>;border-radius:20px;padding:32px 34px;box-shadow:0 12px 32px -16px rgba(26,29,31,0.10);">
 
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="40">
                             <tr>
@@ -232,7 +233,7 @@ class Emails {
                             <h2 style="font-family:<?php echo esc_attr($font_display); ?>;font-size:15px;font-weight:500;color:<?php echo esc_attr($ink); ?>;margin:0 0 8px;">
                                 <?php esc_html_e('Articles concernés', 'werocket-tools'); ?>
                             </h2>
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFFFFF;border:1px solid <?php echo esc_attr($border); ?>;border-radius:10px;margin:0 0 18px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:<?php echo esc_attr($surface); ?>;border:1px solid <?php echo esc_attr($border); ?>;border-radius:10px;margin:0 0 18px;">
                                 <?php foreach ($items as $i => $it) : ?>
                                     <tr>
                                         <td style="padding:10px 14px;<?php echo $i > 0 ? 'border-top:1px solid ' . esc_attr($border) . ';' : ''; ?>font-size:13.5px;color:<?php echo esc_attr($ink); ?>;">

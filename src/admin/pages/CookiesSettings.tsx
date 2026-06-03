@@ -20,9 +20,11 @@ import {
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
-import { ModuleHeader } from '../components/ModuleHeader'
+import { useRegisterSaveForm } from '../context/SaveContext'
 import { CookiesPreview } from '../components/CookiesPreview'
 import type { CookiesSettings, CookieService } from '@/lib/types'
+
+const FORM_ID = 'wr-form-cookies'
 
 type ServiceWithCsv = CookieService & { _cookies_csv: string }
 
@@ -53,7 +55,7 @@ const FALLBACK_META: ServiceMeta = { Icon: IconCookie, color: 'var(--primary)', 
 
 export function CookiesSettings() {
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { setSaving } = useRegisterSaveForm(FORM_ID)
   const [services, setServices] = useState<ServiceWithCsv[]>([])
 
   const { register, handleSubmit, setValue, watch, reset } = useForm<FormValues>()
@@ -107,12 +109,7 @@ export function CookiesSettings() {
   )
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <ModuleHeader
-        title="Gestion des Cookies"
-        description="Bandeau de consentement RGPD avec Google Consent Mode v2"
-        saving={saving}
-      />
+    <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
       <Tabs defaultValue="general">
         <TabsList className="flex flex-wrap h-auto w-fit rounded-3xl">

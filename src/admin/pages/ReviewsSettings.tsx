@@ -14,9 +14,11 @@ import {
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { ModuleHeader } from '../components/ModuleHeader'
+import { useRegisterSaveForm } from '../context/SaveContext'
 import { ReviewsPreview } from '../components/ReviewsPreview'
 import { LayoutBuilder } from '../components/layout-builder/LayoutBuilder'
+
+const FORM_ID = 'wr-form-reviews'
 import { TEMPLATE_META } from '@/frontend/reviews/templates'
 import type { ReviewsSettings as TReviewsSettings, ReviewTemplate } from '@/lib/types'
 
@@ -53,7 +55,7 @@ function formatAbsolute(unixTs: number): string {
 
 export function ReviewsSettings() {
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { setSaving } = useRegisterSaveForm(FORM_ID)
   const [syncing, setSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({ last_sync: null, next_sync_ts: null })
   const { register, handleSubmit, setValue, watch, reset } = useForm<TReviewsSettings>()
@@ -102,12 +104,7 @@ export function ReviewsSettings() {
   const currentTemplate = (watch('template') as ReviewTemplate) || 'classic'
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <ModuleHeader
-        title="Avis Google"
-        description="Affichage des avis Google sur votre site"
-        saving={saving}
-      />
+    <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
