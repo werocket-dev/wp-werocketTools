@@ -18,6 +18,7 @@ import {
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { ModuleHeader } from '../components/ModuleHeader'
+import { CookiesPreview } from '../components/CookiesPreview'
 import type { CookiesSettings, CookieService } from '@/lib/types'
 
 type ServiceWithCsv = CookieService & { _cookies_csv: string }
@@ -180,142 +181,150 @@ export function CookiesSettings() {
 
         {/* ─── Apparence ─── */}
         <TabsContent value="appearance">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Disposition</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Thème">
-                  <Select onValueChange={v => setValue('theme', v as 'light' | 'dark' | 'custom')} value={watch('theme')}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Clair</SelectItem>
-                      <SelectItem value="dark">Sombre</SelectItem>
-                      <SelectItem value="custom">Personnalisé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Position">
-                  <Select onValueChange={v => setValue('position', v as CookiesSettings['position'])} value={watch('position')}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bottom-left">Bas gauche</SelectItem>
-                      <SelectItem value="bottom-right">Bas droite</SelectItem>
-                      <SelectItem value="top-left">Haut gauche</SelectItem>
-                      <SelectItem value="top-right">Haut droite</SelectItem>
-                      <SelectItem value="center">Barre complète</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Couleurs personnalisées</CardTitle>
-                <CardDescription>Actives uniquement avec le thème "Personnalisé"</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {([
-                  ['color_primary', 'Couleur principale'],
-                  ['color_primary_hover', 'Couleur principale (survol)'],
-                  ['color_background', 'Fond'],
-                  ['color_text', 'Texte'],
-                  ['color_text_secondary', 'Texte secondaire'],
-                  ['color_border', 'Bordure'],
-                  ['color_toggle_on', 'Toggle activé'],
-                  ['color_toggle_off', 'Toggle désactivé'],
-                ] as [keyof FormValues, string][]).map(([name, label]) => (
-                  <Field key={name} label={label}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        {...register(name)}
-                        className="h-9 w-12 rounded border border-input cursor-pointer p-0.5 bg-background"
-                      />
-                      <Input {...register(name)} className="font-mono text-sm" placeholder="#000000" />
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div className="space-y-4 lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Disposition</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Thème">
+                    <Select onValueChange={v => setValue('theme', v as 'light' | 'dark' | 'custom')} value={watch('theme')}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Clair</SelectItem>
+                        <SelectItem value="dark">Sombre</SelectItem>
+                        <SelectItem value="custom">Personnalisé</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Field>
-                ))}
-              </CardContent>
-            </Card>
+                  <Field label="Position">
+                    <Select onValueChange={v => setValue('position', v as CookiesSettings['position'])} value={watch('position')}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bottom-left">Bas gauche</SelectItem>
+                        <SelectItem value="bottom-right">Bas droite</SelectItem>
+                        <SelectItem value="top-left">Haut gauche</SelectItem>
+                        <SelectItem value="top-right">Haut droite</SelectItem>
+                        <SelectItem value="center">Barre complète</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Couleurs personnalisées</CardTitle>
+                  <CardDescription>Actives uniquement avec le thème "Personnalisé"</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {([
+                    ['color_primary', 'Couleur principale'],
+                    ['color_primary_hover', 'Couleur principale (survol)'],
+                    ['color_background', 'Fond'],
+                    ['color_text', 'Texte'],
+                    ['color_text_secondary', 'Texte secondaire'],
+                    ['color_border', 'Bordure'],
+                    ['color_toggle_on', 'Toggle activé'],
+                    ['color_toggle_off', 'Toggle désactivé'],
+                  ] as [keyof FormValues, string][]).map(([name, label]) => (
+                    <Field key={name} label={label}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          {...register(name)}
+                          className="h-9 w-12 rounded border border-input cursor-pointer p-0.5 bg-background"
+                        />
+                        <Input {...register(name)} className="font-mono text-sm" placeholder="#000000" />
+                      </div>
+                    </Field>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            <CookiesPreview watch={watch} />
           </div>
         </TabsContent>
 
         {/* ─── Textes ─── */}
         <TabsContent value="texts">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notice principale</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Field label="Titre">
-                  <Input {...register('texts.notice_title')} placeholder="Gestion des cookies" />
-                </Field>
-                <Field label="Description">
-                  <Textarea {...register('texts.notice_description')} rows={3} placeholder="Nous utilisons des cookies..." />
-                </Field>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div className="space-y-4 lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notice principale</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Field label="Titre">
+                    <Input {...register('texts.notice_title')} placeholder="Gestion des cookies" />
+                  </Field>
+                  <Field label="Description">
+                    <Textarea {...register('texts.notice_description')} rows={3} placeholder="Nous utilisons des cookies..." />
+                  </Field>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Boutons</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Field label="Tout accepter"><Input {...register('texts.accept_all')} /></Field>
-                <Field label="Tout refuser"><Input {...register('texts.decline_all')} /></Field>
-                <Field label="Personnaliser"><Input {...register('texts.settings')} /></Field>
-                <Field label="Accepter la sélection"><Input {...register('texts.accept_selected')} /></Field>
-                <Field label="Enregistrer"><Input {...register('texts.save')} /></Field>
-                <Field label="Fermer"><Input {...register('texts.close')} /></Field>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Boutons</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Field label="Tout accepter"><Input {...register('texts.accept_all')} /></Field>
+                  <Field label="Tout refuser"><Input {...register('texts.decline_all')} /></Field>
+                  <Field label="Personnaliser"><Input {...register('texts.settings')} /></Field>
+                  <Field label="Accepter la sélection"><Input {...register('texts.accept_selected')} /></Field>
+                  <Field label="Enregistrer"><Input {...register('texts.save')} /></Field>
+                  <Field label="Fermer"><Input {...register('texts.close')} /></Field>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Liens légaux</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Texte politique de confidentialité">
-                  <Input {...register('texts.privacy_policy')} />
-                </Field>
-                <Field label="URL politique de confidentialité">
-                  <Input {...register('texts.privacy_policy_url')} type="url" placeholder="https://..." />
-                </Field>
-                <Field label="Texte mentions légales">
-                  <Input {...register('texts.imprint')} />
-                </Field>
-                <Field label="URL mentions légales">
-                  <Input {...register('texts.imprint_url')} type="url" placeholder="https://..." />
-                </Field>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Liens légaux</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Texte politique de confidentialité">
+                    <Input {...register('texts.privacy_policy')} />
+                  </Field>
+                  <Field label="URL politique de confidentialité">
+                    <Input {...register('texts.privacy_policy_url')} type="url" placeholder="https://..." />
+                  </Field>
+                  <Field label="Texte mentions légales">
+                    <Input {...register('texts.imprint')} />
+                  </Field>
+                  <Field label="URL mentions légales">
+                    <Input {...register('texts.imprint_url')} type="url" placeholder="https://..." />
+                  </Field>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Finalités</CardTitle>
-                <CardDescription>Titres et descriptions des catégories de consentement</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {PURPOSE_KEYS.map(key => (
-                  <div key={key} className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{PURPOSE_LABELS[key]}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Field label="Titre">
-                        <Input {...register(`purposes.${key}.title` as keyof FormValues)} placeholder={PURPOSE_LABELS[key]} />
-                      </Field>
-                      <Field label="Description">
-                        <Input {...register(`purposes.${key}.description` as keyof FormValues)} />
-                      </Field>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Finalités</CardTitle>
+                  <CardDescription>Titres et descriptions des catégories de consentement</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {PURPOSE_KEYS.map(key => (
+                    <div key={key} className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{PURPOSE_LABELS[key]}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Field label="Titre">
+                          <Input {...register(`purposes.${key}.title` as keyof FormValues)} placeholder={PURPOSE_LABELS[key]} />
+                        </Field>
+                        <Field label="Description">
+                          <Input {...register(`purposes.${key}.description` as keyof FormValues)} />
+                        </Field>
+                      </div>
+                      {key !== 'preferences' && <Separator />}
                     </div>
-                    {key !== 'preferences' && <Separator />}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            <CookiesPreview watch={watch} />
           </div>
         </TabsContent>
 
