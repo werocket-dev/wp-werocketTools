@@ -87,11 +87,6 @@ defined('ABSPATH') || exit;
                         <span><?php esc_html_e('Effectué après validation, sur le moyen de paiement initial.', 'werocket-tools'); ?></span>
                     </li>
                 </ol>
-
-                <div class="wr-retractation-app__legal wr-anim wr-anim-5">
-                    <strong><?php esc_html_e('Cadre légal', 'werocket-tools'); ?></strong>
-                    <?php esc_html_e('Articles L221-18 et suivants du Code de la consommation. Formulaire en ligne et accusé sur support durable conformément à L221-21.', 'werocket-tools'); ?>
-                </div>
             </aside>
 
             <!-- ───── Panneau formulaire ───── -->
@@ -301,6 +296,11 @@ defined('ABSPATH') || exit;
 
                 <?php endif; ?>
 
+            </div>
+
+            <div class="wr-retractation-app__legal wr-anim wr-anim-5">
+                <strong><?php esc_html_e('Cadre légal', 'werocket-tools'); ?></strong>
+                <?php esc_html_e('Articles L221-18 et suivants du Code de la consommation. Formulaire en ligne et accusé sur support durable conformément à L221-21.', 'werocket-tools'); ?>
             </div>
 
         </div>

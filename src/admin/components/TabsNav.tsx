@@ -32,7 +32,7 @@ export function TabsNav({ modules, currentTab, onNavigate }: Props) {
         <IconLayoutDashboard size={18} />
         Tableau de bord
       </button>
-      {modules.map(m => (
+      {modules.filter(m => m.active).map(m => (
         <button type="button" key={m.id} className={tabClass(currentTab === m.id)} onClick={() => onNavigate(m.id)}>
           {MODULE_ICONS[m.id] ?? null}
           {m.name}
