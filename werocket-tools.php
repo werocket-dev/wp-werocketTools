@@ -26,6 +26,7 @@ define('WEROCKET_TOOLS_VERSION', '1.0.0');
 define('WEROCKET_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEROCKET_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WEROCKET_TOOLS_PLUGIN_BASENAME', plugin_basename(__FILE__));
+define('WEROCKET_TOOLS_DIST_URL', plugin_dir_url(__FILE__) . 'dist/');
 
 // Autoloader
 require_once WEROCKET_TOOLS_PLUGIN_DIR . 'includes/Autoloader.php';

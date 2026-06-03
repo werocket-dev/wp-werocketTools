@@ -6,6 +6,7 @@
 namespace WeRocket\Tools\Core;
 
 use WeRocket\Tools\Admin\AdminMenu;
+use WeRocket\Tools\Admin\RestApi;
 use WeRocket\Tools\Modules\ModuleManager;
 
 class Plugin {
@@ -27,10 +28,16 @@ class Plugin {
     public function init(): void {
         $this->load_textdomain();
         $this->init_modules();
+        $this->init_rest_api();
 
         if (is_admin()) {
             $this->init_admin();
         }
+    }
+
+    private function init_rest_api(): void {
+        $rest_api = new RestApi($this->module_manager);
+        $rest_api->init();
     }
 
     private function load_textdomain(): void {

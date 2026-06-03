@@ -30,8 +30,8 @@ composer.lock
 package-lock.json
 
 # Build & Compilation
-/dist/
-/build/
+# dist/ est commité (déploiement sans Node.js sur les serveurs WP)
+/dist/.hot
 *.map
 
 # Logs

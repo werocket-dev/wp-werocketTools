@@ -7,6 +7,7 @@
 
 namespace WeRocket\Tools\Modules\Cookies;
 
+use WeRocket\Tools\Admin\ViteAssets;
 use WeRocket\Tools\Modules\AbstractModule;
 
 class CookiesModule extends AbstractModule {
@@ -406,35 +407,31 @@ class CookiesModule extends AbstractModule {
     }
 
     public function enqueue_frontend_assets(): void {
-        // Klaro CSS
-        wp_enqueue_style(
-            'klaro',
-            'https://cdn.kiprotect.com/klaro/v0.7/klaro.min.css',
-            [],
-            '0.7.0'
-        );
-
-        // Custom overrides
-        wp_enqueue_style(
-            'werocket-cookies',
-            WEROCKET_TOOLS_PLUGIN_URL . 'assets/css/cookies.css',
-            ['klaro'],
-            WEROCKET_TOOLS_VERSION
-        );
-
-        // Add inline custom CSS
         $settings = $this->get_settings();
-        $custom_css = $this->generate_custom_css($settings);
-        wp_add_inline_style('werocket-cookies', $custom_css);
 
-        // Helper JS for consent management
-        wp_enqueue_script(
-            'werocket-cookies',
-            WEROCKET_TOOLS_PLUGIN_URL . 'assets/js/cookies.js',
-            [],
-            WEROCKET_TOOLS_VERSION,
-            true
-        );
+        // Klaro CSS (conservé car moteur de consentement)
+        wp_enqueue_style('klaro', 'https://cdn.kiprotect.com/klaro/v0.7/klaro.min.css', [], '0.7.0');
+
+        // Bundle React cookies (banner custom)
+        ViteAssets::enqueue_entry('frontend/cookies/main.tsx', 'werocket-cookies');
+
+        // Passe la config au composant React
+        $config = [
+            'position'        => $settings['position'] ?? 'bottom-left',
+            'theme'           => $settings['theme'] ?? 'light',
+            'primary_color'   => $settings['color_primary'] ?? '#059669',
+            'notice_text'     => $settings['texts']['notice_description'] ?? '',
+            'accept_all_text' => $settings['texts']['accept_all'] ?? 'Tout accepter',
+            'decline_text'    => $settings['texts']['decline_all'] ?? 'Tout refuser',
+            'settings_text'   => $settings['texts']['settings'] ?? 'Personnaliser',
+        ];
+
+        add_action('wp_footer', function () use ($config): void {
+            printf(
+                '<div id="werocket-cookies-banner" data-config="%s"></div>',
+                esc_attr(wp_json_encode($config))
+            );
+        }, 5);
     }
 
     /**

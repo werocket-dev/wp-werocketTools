@@ -5,6 +5,7 @@
 
 namespace WeRocket\Tools\Modules\GoogleBusiness;
 
+use WeRocket\Tools\Admin\ViteAssets;
 use WeRocket\Tools\Modules\AbstractModule;
 
 class GoogleBusinessModule extends AbstractModule {
@@ -20,8 +21,21 @@ class GoogleBusinessModule extends AbstractModule {
         add_shortcode('werocket_business_hours', [$this, 'render_hours_shortcode']);
         add_shortcode('werocket_business_map', [$this, 'render_map_shortcode']);
 
-        // Schema.org structured data
         add_action('wp_head', [$this, 'output_structured_data']);
+
+        if (!is_admin()) {
+            add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
+        }
+    }
+
+    public function enqueue_frontend_assets(): void {
+        ViteAssets::enqueue_entry('frontend/business/main.tsx', 'werocket-business');
+
+        wp_add_inline_script(
+            'werocket-business',
+            'window.werocketFrontend = window.werocketFrontend || {}; window.werocketFrontend.restUrl = ' . wp_json_encode(rest_url('werocket/v1/')) . ';',
+            'before'
+        );
     }
 
     public function render_settings(): void {
@@ -162,23 +176,14 @@ class GoogleBusinessModule extends AbstractModule {
     }
 
     public function render_info_shortcode(array $atts = []): string {
-        $settings = $this->get_settings();
-        ob_start();
-        include WEROCKET_TOOLS_PLUGIN_DIR . 'templates/modules/google-business-info.php';
-        return ob_get_clean();
+        return '<div class="werocket-business-info-mount"></div>';
     }
 
     public function render_hours_shortcode(array $atts = []): string {
-        $settings = $this->get_settings();
-        ob_start();
-        include WEROCKET_TOOLS_PLUGIN_DIR . 'templates/modules/google-business-hours.php';
-        return ob_get_clean();
+        return '<div class="werocket-business-hours-mount"></div>';
     }
 
     public function render_map_shortcode(array $atts = []): string {
-        $settings = $this->get_settings();
-        ob_start();
-        include WEROCKET_TOOLS_PLUGIN_DIR . 'templates/modules/google-business-map.php';
-        return ob_get_clean();
+        return '<div class="werocket-business-map-mount"></div>';
     }
 }

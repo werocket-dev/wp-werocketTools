@@ -1,0 +1,76 @@
+{
+  "_IconPhone-BIWQvN3S.js": {
+    "file": "assets/IconPhone-BIWQvN3S.js",
+    "name": "IconPhone",
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js"
+    ]
+  },
+  "_IconStarFilled-DqxNGdS0.js": {
+    "file": "assets/IconStarFilled-DqxNGdS0.js",
+    "name": "IconStarFilled",
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js"
+    ]
+  },
+  "_button-COMn04Wf.js": {
+    "file": "assets/button-COMn04Wf.js",
+    "name": "button",
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js"
+    ]
+  },
+  "_createReactComponent-CJMmm1Ex.js": {
+    "file": "assets/createReactComponent-CJMmm1Ex.js",
+    "name": "createReactComponent",
+    "css": [
+      "assets/createReactComponent-Y-QhX_Oh.css"
+    ]
+  },
+  "_createReactComponent-Y-QhX_Oh.css": {
+    "file": "assets/createReactComponent-Y-QhX_Oh.css",
+    "src": "_createReactComponent-Y-QhX_Oh.css"
+  },
+  "src/admin/main.tsx": {
+    "file": "assets/admin-CGjUZJMS.js",
+    "name": "admin",
+    "src": "src/admin/main.tsx",
+    "isEntry": true,
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js",
+      "_button-COMn04Wf.js",
+      "_IconStarFilled-DqxNGdS0.js",
+      "_IconPhone-BIWQvN3S.js"
+    ]
+  },
+  "src/frontend/business/main.tsx": {
+    "file": "assets/business-B7cpac4g.js",
+    "name": "business",
+    "src": "src/frontend/business/main.tsx",
+    "isEntry": true,
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js",
+      "_IconPhone-BIWQvN3S.js"
+    ]
+  },
+  "src/frontend/cookies/main.tsx": {
+    "file": "assets/cookies-CdtR6r2d.js",
+    "name": "cookies",
+    "src": "src/frontend/cookies/main.tsx",
+    "isEntry": true,
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js",
+      "_button-COMn04Wf.js"
+    ]
+  },
+  "src/frontend/reviews/main.tsx": {
+    "file": "assets/reviews-D7VutX7I.js",
+    "name": "reviews",
+    "src": "src/frontend/reviews/main.tsx",
+    "isEntry": true,
+    "imports": [
+      "_createReactComponent-CJMmm1Ex.js",
+      "_IconStarFilled-DqxNGdS0.js"
+    ]
+  }
+}

@@ -5,6 +5,7 @@
 
 namespace WeRocket\Tools\Modules\GoogleReviews;
 
+use WeRocket\Tools\Admin\ViteAssets;
 use WeRocket\Tools\Modules\AbstractModule;
 
 class GoogleReviewsModule extends AbstractModule {
@@ -59,26 +60,27 @@ class GoogleReviewsModule extends AbstractModule {
     }
 
     public function enqueue_frontend_assets(): void {
-        wp_enqueue_style(
-            'werocket-google-reviews',
-            WEROCKET_TOOLS_PLUGIN_URL . 'assets/css/google-reviews.css',
-            [],
-            WEROCKET_TOOLS_VERSION
+        ViteAssets::enqueue_entry('frontend/reviews/main.tsx', 'werocket-reviews');
+
+        // REST URL pour le widget
+        wp_add_inline_script(
+            'werocket-reviews',
+            'window.werocketFrontend = window.werocketFrontend || {}; window.werocketFrontend.restUrl = ' . wp_json_encode(rest_url('werocket/v1/')) . ';',
+            'before'
         );
     }
 
     public function render_shortcode(array $atts = []): string {
         $atts = shortcode_atts([
-            'count' => null,
-            'style' => null,
+            'count' => $this->get_settings()['reviews_count'] ?? 5,
+            'style' => $this->get_settings()['display_style'] ?? 'grid',
         ], $atts);
 
-        $settings = $this->get_settings();
-        $reviews = $this->fetch_reviews();
-
-        ob_start();
-        include WEROCKET_TOOLS_PLUGIN_DIR . 'templates/modules/google-reviews-display.php';
-        return ob_get_clean();
+        return sprintf(
+            '<div class="werocket-reviews-mount" data-count="%d" data-style="%s"></div>',
+            absint($atts['count']),
+            esc_attr($atts['style'])
+        );
     }
 
     public function fetch_reviews(): array {
