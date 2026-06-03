@@ -10,6 +10,9 @@ use WeRocket\Tools\Modules\AbstractModule;
 
 class GoogleReviewsModule extends AbstractModule {
 
+    public const CRON_HOOK = 'werocket_google_reviews_weekly_sync';
+    public const LAST_SYNC_OPTION = 'werocket_google_reviews_last_sync';
+
     protected string $id = 'google_reviews';
     protected string $name = 'Avis Google';
     protected string $description = 'Affichage et gestion des avis Google My Business';
@@ -19,9 +22,25 @@ class GoogleReviewsModule extends AbstractModule {
     public function init(): void {
         add_shortcode('werocket_reviews', [$this, 'render_shortcode']);
 
+        // Cron hook callback (toujours enregistré pour que WP-Cron puisse l'appeler)
+        add_action(self::CRON_HOOK, [$this, 'force_refresh']);
+
+        // Planifier le cron si pas encore programmé
+        if (!wp_next_scheduled(self::CRON_HOOK)) {
+            wp_schedule_event(time() + HOUR_IN_SECONDS, 'weekly', self::CRON_HOOK);
+        }
+
         if (!is_admin()) {
             add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
         }
+    }
+
+    public static function unschedule_cron(): void {
+        $timestamp = wp_next_scheduled(self::CRON_HOOK);
+        if ($timestamp !== false) {
+            wp_unschedule_event($timestamp, self::CRON_HOOK);
+        }
+        wp_clear_scheduled_hook(self::CRON_HOOK);
     }
 
     public function render_settings(): void {}
@@ -159,15 +178,13 @@ class GoogleReviewsModule extends AbstractModule {
 
     public function fetch_reviews(): array {
         $settings = $this->get_settings();
-        $cache_key = 'werocket_google_reviews_' . md5($settings['google_place_id']);
+        $cache_key = $this->get_cache_key($settings);
 
         $cached = get_transient($cache_key);
         if ($cached !== false) {
             return $cached;
         }
 
-        // TODO: Implement actual Google Places API call
-        // For now, return empty array - API implementation will be added
         $reviews = [];
 
         if (!empty($settings['google_place_id']) && !empty($settings['google_api_key'])) {
@@ -179,6 +196,53 @@ class GoogleReviewsModule extends AbstractModule {
         }
 
         return $reviews;
+    }
+
+    /**
+     * Force refresh: clear cache + re-fetch from Google API. Returns array with
+     * 'success', 'count', 'timestamp', 'error' (if any).
+     */
+    public function force_refresh(): array {
+        $settings = $this->get_settings();
+
+        if (empty($settings['google_place_id']) || empty($settings['google_api_key'])) {
+            return [
+                'success'   => false,
+                'count'     => 0,
+                'timestamp' => time(),
+                'error'     => __('Place ID ou clé API Google Places manquant.', 'werocket-tools'),
+            ];
+        }
+
+        $cache_key = $this->get_cache_key($settings);
+        delete_transient($cache_key);
+
+        $reviews = $this->call_google_api($settings);
+
+        $now = time();
+        $result = [
+            'success'   => is_array($reviews),
+            'count'     => is_array($reviews) ? count($reviews) : 0,
+            'timestamp' => $now,
+            'error'     => null,
+        ];
+
+        if (is_array($reviews) && !empty($reviews)) {
+            set_transient($cache_key, $reviews, (int) ($settings['cache_duration'] ?? 3600));
+        }
+
+        update_option(self::LAST_SYNC_OPTION, $result);
+
+        return $result;
+    }
+
+    public function get_last_sync(): ?array {
+        $stored = get_option(self::LAST_SYNC_OPTION, null);
+        return is_array($stored) ? $stored : null;
+    }
+
+    private function get_cache_key(array $settings): string {
+        return 'werocket_google_reviews_' . md5($settings['google_place_id'] ?? '');
     }
 
     private function call_google_api(array $settings): array {

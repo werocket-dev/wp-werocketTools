@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  IconKey, IconEye, IconLoader2, IconExternalLink,
+  IconKey, IconEye, IconLoader2, IconExternalLink, IconRefresh,
+  IconCircleCheck, IconAlertTriangle, IconClock,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -21,15 +22,50 @@ import type { ReviewsSettings as TReviewsSettings, ReviewTemplate } from '@/lib/
 
 const PLACE_ID_FINDER_URL = 'https://developers.google.com/maps/documentation/places/web-service/place-id'
 
+interface SyncResult {
+  success: boolean
+  count: number
+  timestamp: number
+  error: string | null
+}
+
+interface SyncStatus {
+  last_sync: SyncResult | null
+  next_sync_ts: number | null
+}
+
+function formatRelative(unixTs: number): string {
+  const now = Math.floor(Date.now() / 1000)
+  const diff = now - unixTs
+  if (diff < 60) return 'à l\'instant'
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
+  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`
+  if (diff < 86400 * 30) return `il y a ${Math.floor(diff / 86400)} j`
+  return new Date(unixTs * 1000).toLocaleDateString('fr-FR')
+}
+
+function formatAbsolute(unixTs: number): string {
+  return new Date(unixTs * 1000).toLocaleString('fr-FR', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 export function ReviewsSettings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({ last_sync: null, next_sync_ts: null })
   const { register, handleSubmit, setValue, watch, reset } = useForm<TReviewsSettings>()
 
   useEffect(() => {
     api.get<{ settings: TReviewsSettings }>('/settings/google_reviews')
       .then(data => reset(data.settings))
       .finally(() => setLoading(false))
+
+    api.get<SyncStatus>('/reviews/sync-status')
+      .then(setSyncStatus)
+      .catch(() => {/* silent */})
   }, [reset])
 
   async function onSubmit(data: TReviewsSettings) {
@@ -41,6 +77,23 @@ export function ReviewsSettings() {
       toast.error(e instanceof Error ? e.message : 'Erreur lors de l\'enregistrement')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      const result = await api.post<SyncStatus>('/reviews/refresh', {})
+      setSyncStatus(result)
+      if (result.last_sync?.success) {
+        toast.success(`Avis synchronisés (${result.last_sync.count} avis récupérés)`)
+      } else {
+        toast.error(result.last_sync?.error || 'Échec de la synchronisation')
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erreur lors de la synchronisation')
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -80,6 +133,12 @@ export function ReviewsSettings() {
             <Field label="Durée du cache (secondes)">
               <Input {...register('cache_duration', { valueAsNumber: true })} type="number" min={60} />
             </Field>
+
+            <SyncBlock
+              status={syncStatus}
+              syncing={syncing}
+              onSync={handleSync}
+            />
           </CardContent>
         </Card>
 
@@ -189,6 +248,68 @@ function SwitchRow({ label, checked, onChange }: { label: string; checked: boole
     <div className="flex items-center justify-between">
       <Label className="text-sm">{label}</Label>
       <Switch checked={!!checked} onCheckedChange={onChange} />
+    </div>
+  )
+}
+
+function SyncBlock({
+  status,
+  syncing,
+  onSync,
+}: {
+  status: SyncStatus
+  syncing: boolean
+  onSync: () => void
+}) {
+  const last = status.last_sync
+  const next = status.next_sync_ts
+
+  return (
+    <div className="pt-3 mt-1 border-t border-border/60 space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs">
+            {!last ? (
+              <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                <IconClock size={13} />
+                Jamais synchronisé
+              </span>
+            ) : last.success ? (
+              <span className="text-foreground inline-flex items-center gap-1.5">
+                <IconCircleCheck size={14} className="text-primary" />
+                <span className="font-medium">Dernière synchro :</span>
+                <span className="text-muted-foreground" title={formatAbsolute(last.timestamp)}>
+                  {formatRelative(last.timestamp)} · {last.count} avis
+                </span>
+              </span>
+            ) : (
+              <span className="text-foreground inline-flex items-center gap-1.5">
+                <IconAlertTriangle size={14} className="text-destructive" />
+                <span className="font-medium">Échec :</span>
+                <span className="text-muted-foreground">{last.error}</span>
+              </span>
+            )}
+          </div>
+          {next && (
+            <div className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
+              <IconClock size={11} />
+              Prochaine synchro automatique : {formatAbsolute(next)}
+            </div>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onSync}
+          disabled={syncing}
+          className="shrink-0 gap-1.5"
+        >
+          <IconRefresh size={14} className={syncing ? 'animate-spin' : ''} />
+          {syncing ? 'Synchro…' : 'Synchroniser'}
+        </Button>
+      </div>
     </div>
   )
 }

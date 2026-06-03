@@ -69,6 +69,20 @@ class RestApi {
             'permission_callback' => '__return_true',
         ]);
 
+        // POST /reviews/refresh (admin only)
+        register_rest_route($namespace, '/reviews/refresh', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'refresh_reviews'],
+            'permission_callback' => [$this, 'require_admin'],
+        ]);
+
+        // GET /reviews/sync-status (admin only)
+        register_rest_route($namespace, '/reviews/sync-status', [
+            'methods'             => 'GET',
+            'callback'            => [$this, 'get_sync_status'],
+            'permission_callback' => [$this, 'require_admin'],
+        ]);
+
     }
 
     public function require_admin(): bool|WP_Error {
@@ -159,6 +173,37 @@ class RestApi {
         return rest_ensure_response([
             'reviews'  => $module->fetch_reviews(),
             'settings' => $module->get_settings(),
+        ]);
+    }
+
+    public function refresh_reviews(WP_REST_Request $request): WP_REST_Response|WP_Error {
+        $module = $this->module_manager->get_module('google_reviews');
+
+        if (!$module) {
+            return new WP_Error('module_not_found', __('Module non trouvé', 'werocket-tools'), ['status' => 404]);
+        }
+
+        /** @var \WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule $module */
+        $result = $module->force_refresh();
+        $next   = wp_next_scheduled(\WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule::CRON_HOOK);
+
+        return rest_ensure_response([
+            'last_sync'     => $result,
+            'next_sync_ts'  => $next ?: null,
+        ]);
+    }
+
+    public function get_sync_status(WP_REST_Request $request): WP_REST_Response|WP_Error {
+        $module = $this->module_manager->get_module('google_reviews');
+
+        if (!$module) {
+            return new WP_Error('module_not_found', __('Module non trouvé', 'werocket-tools'), ['status' => 404]);
+        }
+
+        /** @var \WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule $module */
+        return rest_ensure_response([
+            'last_sync'    => $module->get_last_sync(),
+            'next_sync_ts' => wp_next_scheduled(\WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule::CRON_HOOK) ?: null,
         ]);
     }
 
