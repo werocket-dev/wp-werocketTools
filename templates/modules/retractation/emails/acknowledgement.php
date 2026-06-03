@@ -22,15 +22,17 @@ $created_label = $created_gmt
     ? date_i18n(get_option('date_format') . ' · ' . get_option('time_format'), $created_gmt)
     : (string) $request['created_at_gmt'];
 
-// Couleurs design system
-$accent      = '#0F766E';
-$accent_soft = '#E6F2F0';
+// Couleurs design system (depuis settings — fallback teal werocket)
+$wr_settings = get_option('werocket_retractation_settings', []);
+$accent      = (string) ($wr_settings['email_color'] ?? '#0F766E');
+$accent_soft = \WeRocket\Tools\Modules\Retractation\Frontend::hex_to_rgba($accent, 0.1);
 $ink         = '#1A1D1F';
 $ink_muted   = '#5F6368';
 $ink_subtle  = '#9AA0A6';
 $bg_warm     = '#FAF8F4';
 $bg_alt      = '#F4F1EB';
 $border      = '#E8EAED';
+$logo_url    = (string) ($wr_settings['email_logo_url'] ?? '');
 
 $font_display = "'Fraunces', Georgia, 'Times New Roman', serif";
 $font_body    = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
@@ -78,10 +80,16 @@ $font_body    = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helveti
                     <td style="padding:0 4px 22px;">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                             <tr>
-                                <td align="left" style="font-family:<?php echo esc_attr($font_body); ?>;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_muted); ?>;">
-                                    <?php echo esc_html($site_name); ?>
+                                <td align="left" valign="middle">
+                                    <?php if (!empty($logo_url)) : ?>
+                                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($site_name); ?>" style="display:block;max-height:42px;width:auto;border:0;outline:none;text-decoration:none;" />
+                                    <?php else : ?>
+                                        <span style="font-family:<?php echo esc_attr($font_body); ?>;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_muted); ?>;">
+                                            <?php echo esc_html($site_name); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
-                                <td align="right" style="font-family:<?php echo esc_attr($font_body); ?>;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_subtle); ?>;">
+                                <td align="right" valign="middle" style="font-family:<?php echo esc_attr($font_body); ?>;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_subtle); ?>;">
                                     <?php esc_html_e('Accusé de réception', 'werocket-tools'); ?>
                                 </td>
                             </tr>

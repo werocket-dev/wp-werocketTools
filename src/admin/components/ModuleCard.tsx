@@ -15,12 +15,43 @@ interface Props {
   onNavigate: (tab: string) => void
 }
 
-// Couleur WooCommerce #7F54B3 → HSL 271 47% 52%
+// #F2EDFF fond de card · #873EFF boutons/switch · override CSS vars shadcn
 const WOO_VARS = {
-  '--primary': '271 47% 52%',
-  '--primary-foreground': '0 0% 100%',
-  '--ring': '271 47% 52%',
+  '--card': '#F2EDFF',
+  '--primary': '#873EFF',
+  '--primary-foreground': '#ffffff',
+  '--ring': '#873EFF',
 } as React.CSSProperties
+
+function WooIcon() {
+  return (
+    <svg width="28" height="18" viewBox="0 0 56 36" fill="none" aria-hidden>
+      {/* Speech bubble */}
+      <rect width="56" height="28" rx="7" fill="currentColor" />
+      <path d="M37 28 L34 36 L31 28" fill="currentColor" />
+      {/* "woo" text */}
+      <text
+        x="6" y="20"
+        fill="white"
+        fontSize="14"
+        fontWeight="700"
+        fontFamily="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        letterSpacing="-0.3"
+      >
+        woo
+      </text>
+    </svg>
+  )
+}
+
+function WooBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary text-primary-foreground">
+      <WooIcon />
+      WooCommerce
+    </span>
+  )
+}
 
 export function ModuleCard({ module, onToggle, onNavigate }: Props) {
   const [loading, setLoading] = useState(false)
@@ -60,10 +91,13 @@ export function ModuleCard({ module, onToggle, onNavigate }: Props) {
           </CardAction>
         </CardHeader>
         <CardContent className="flex-1 space-y-3">
-          <Badge variant={module.active ? 'default' : 'secondary'}>
-            <span className={`w-1.5 h-1.5 rounded-full ${module.active ? 'bg-primary-foreground' : 'bg-muted-foreground/60'}`} />
-            {module.active ? 'Actif' : 'Inactif'}
-          </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={module.active ? 'default' : 'secondary'}>
+              <span className={`w-1.5 h-1.5 rounded-full ${module.active ? 'bg-primary-foreground' : 'bg-muted-foreground/60'}`} />
+              {module.active ? 'Actif' : 'Inactif'}
+            </Badge>
+            {isWoo && <WooBadge />}
+          </div>
           <CardDescription className="leading-relaxed">{module.description}</CardDescription>
         </CardContent>
         <CardFooter className="mt-auto">

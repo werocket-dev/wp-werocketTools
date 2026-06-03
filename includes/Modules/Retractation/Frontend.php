@@ -128,6 +128,10 @@ class Frontend {
         $current_user = wp_get_current_user();
         $default_email = $current_user->ID ? $current_user->user_email : '';
 
+        $settings = get_option('werocket_retractation_settings', []);
+        $accent = (string) ($settings['frontend_color'] ?? '#0F766E');
+        $accent_deep = self::darken_hex($accent, 0.85);
+
         $form_data = [
             'order'         => $order,
             'step'          => $step,
@@ -138,6 +142,9 @@ class Frontend {
             'lookup_state'  => $lookup_state,
             'submit_url'    => esc_url_raw(remove_query_arg(['wr_success'])),
             'nonce_field'   => wp_nonce_field(self::NONCE_ACTION, self::NONCE_FIELD, true, false),
+            'accent'        => $accent,
+            'accent_deep'   => $accent_deep,
+            'accent_soft'   => self::hex_to_rgba($accent, 0.08),
         ];
 
         $template = WEROCKET_TOOLS_PLUGIN_DIR . 'templates/modules/retractation/form.php';
@@ -353,6 +360,36 @@ class Frontend {
     private function get_client_ip(): string {
         $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
         return preg_match('/^[0-9a-f.:]+$/i', $ip) ? $ip : '';
+    }
+
+    /** Convertit un hex (#RGB ou #RRGGBB) en rgba(r,g,b,a). */
+    public static function hex_to_rgba(string $hex, float $alpha = 1.0): string {
+        $hex = ltrim(trim($hex), '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (strlen($hex) !== 6) {
+            return 'rgba(15, 118, 110, ' . $alpha . ')';
+        }
+        $r = (int) hexdec(substr($hex, 0, 2));
+        $g = (int) hexdec(substr($hex, 2, 2));
+        $b = (int) hexdec(substr($hex, 4, 2));
+        return sprintf('rgba(%d, %d, %d, %s)', $r, $g, $b, $alpha);
+    }
+
+    /** Assombrit un hex en multipliant les composantes RGB par un facteur (0-1). */
+    public static function darken_hex(string $hex, float $factor = 0.85): string {
+        $hex = ltrim(trim($hex), '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (strlen($hex) !== 6) {
+            return '#0B5851';
+        }
+        $r = max(0, min(255, (int) round(hexdec(substr($hex, 0, 2)) * $factor)));
+        $g = max(0, min(255, (int) round(hexdec(substr($hex, 2, 2)) * $factor)));
+        $b = max(0, min(255, (int) round(hexdec(substr($hex, 4, 2)) * $factor)));
+        return sprintf('#%02x%02x%02x', $r, $g, $b);
     }
 
     private function redirect_back(array $extra_query = []): void {

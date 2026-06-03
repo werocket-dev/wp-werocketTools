@@ -100,9 +100,11 @@ class Emails {
             ? date_i18n(get_option('date_format') . ' · ' . get_option('time_format'), $created_gmt)
             : (string) $request['created_at_gmt'];
 
-        // Palette
-        $accent      = '#0F766E';
-        $accent_soft = '#E6F2F0';
+        // Palette (depuis settings)
+        $settings    = get_option('werocket_retractation_settings', []);
+        $accent      = (string) ($settings['email_color'] ?? '#0F766E');
+        $accent_soft = Frontend::hex_to_rgba($accent, 0.1);
+        $logo_url    = (string) ($settings['email_logo_url'] ?? '');
         $ink         = '#1A1D1F';
         $ink_muted   = '#5F6368';
         $ink_subtle  = '#9AA0A6';
@@ -134,10 +136,16 @@ class Emails {
                     <td style="padding:0 4px 16px;">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                             <tr>
-                                <td align="left" style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_muted); ?>;">
-                                    <?php echo esc_html(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES)); ?>
+                                <td align="left" valign="middle">
+                                    <?php if (!empty($logo_url)) : ?>
+                                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES)); ?>" style="display:block;max-height:36px;width:auto;border:0;outline:none;text-decoration:none;" />
+                                    <?php else : ?>
+                                        <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:<?php echo esc_attr($ink_muted); ?>;">
+                                            <?php echo esc_html(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES)); ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
-                                <td align="right">
+                                <td align="right" valign="middle">
                                     <span style="display:inline-block;padding:3px 9px;background:<?php echo esc_attr($accent); ?>;color:#FFFFFF;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">
                                         <?php esc_html_e('Action requise', 'werocket-tools'); ?>
                                     </span>

@@ -72,6 +72,10 @@ export interface RetractationSettings {
   merchant_notify: boolean
   merchant_email: string
   show_legal_notice: boolean
+  frontend_color: string
+  email_color: string
+  email_logo_id: number
+  email_logo_url: string
 }
 
 export type CookiePosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'center'

@@ -56,6 +56,10 @@ class RetractationModule extends AbstractModule {
             'merchant_notify'    => true,
             'merchant_email'     => '', // si vide => admin_email
             'show_legal_notice'  => true,
+            'frontend_color'     => '#0F766E',
+            'email_color'        => '#0F766E',
+            'email_logo_id'      => 0,
+            'email_logo_url'     => '',
         ];
     }
 
@@ -66,7 +70,19 @@ class RetractationModule extends AbstractModule {
             'merchant_notify'   => !empty($data['merchant_notify']),
             'merchant_email'    => is_email($data['merchant_email'] ?? '') ? sanitize_email($data['merchant_email']) : '',
             'show_legal_notice' => !empty($data['show_legal_notice']),
+            'frontend_color'    => self::sanitize_hex_color($data['frontend_color'] ?? '#0F766E'),
+            'email_color'       => self::sanitize_hex_color($data['email_color'] ?? '#0F766E'),
+            'email_logo_id'     => absint($data['email_logo_id'] ?? 0),
+            'email_logo_url'    => esc_url_raw($data['email_logo_url'] ?? ''),
         ];
+    }
+
+    private static function sanitize_hex_color(string $hex): string {
+        $hex = trim($hex);
+        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $hex)) {
+            return strtolower($hex);
+        }
+        return '#0F766E';
     }
 
     public function render_woocommerce_missing_notice(): void {

@@ -17,7 +17,15 @@
 defined('ABSPATH') || exit;
 ?>
 
-<div class="wr-retractation-app">
+<?php
+$wr_inline_style = sprintf(
+    '--wr-accent: %s; --wr-accent-deep: %s; --wr-accent-soft: %s;',
+    esc_attr($accent ?? '#0F766E'),
+    esc_attr($accent_deep ?? '#0B5851'),
+    esc_attr($accent_soft ?? 'rgba(15, 118, 110, 0.08)')
+);
+?>
+<div class="wr-retractation-app" style="<?php echo esc_attr($wr_inline_style); ?>">
 
     <?php if (!empty($success)) : ?>
 

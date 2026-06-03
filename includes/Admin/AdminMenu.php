@@ -38,6 +38,9 @@ class AdminMenu {
             return;
         }
 
+        // Permet d'utiliser wp.media() depuis React (module Rétractation : logo email).
+        wp_enqueue_media();
+
         ViteAssets::enqueue_entry('admin/main.tsx', 'werocket-admin');
     }
 

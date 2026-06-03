@@ -8,9 +8,10 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import {
   IconLoader2, IconSettings, IconShieldCheck, IconBell, IconExternalLink,
-  IconClipboardList, IconCode, IconAlertTriangle,
+  IconClipboardList, IconCode, IconAlertTriangle, IconPalette, IconPhoto, IconTrash,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { openMediaPicker } from '@/lib/wp-media'
 import { ModuleHeader } from '../components/ModuleHeader'
 import type { RetractationSettings as TRetractationSettings } from '@/lib/types'
 
@@ -35,6 +36,24 @@ export function RetractationSettings() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleSelectLogo() {
+    try {
+      const attachment = await openMediaPicker({
+        title: 'Choisir le logo pour les emails',
+        button: { text: 'Utiliser ce logo' },
+      })
+      setValue('email_logo_id', attachment.id)
+      setValue('email_logo_url', attachment.url)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Impossible d\'ouvrir la médiathèque')
+    }
+  }
+
+  function handleClearLogo() {
+    setValue('email_logo_id', 0)
+    setValue('email_logo_url', '')
   }
 
   if (loading) return <Spinner />
@@ -110,6 +129,44 @@ export function RetractationSettings() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><IconPalette size={16} /> Identité visuelle</CardTitle>
+          <CardDescription>Couleurs d'accent et logo email pour aligner le module à votre marque</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <ColorField
+              label="Couleur d'accent — formulaire client"
+              description="Appliquée au formulaire de la page Mon Compte (titre italique, boutons, focus, étapes)."
+              value={watch('frontend_color') ?? '#0F766E'}
+              onChange={v => setValue('frontend_color', v)}
+            />
+            <ColorField
+              label="Couleur d'accent — emails"
+              description="Appliquée aux emails d'accusé de réception et de notification marchand."
+              value={watch('email_color') ?? '#0F766E'}
+              onChange={v => setValue('email_color', v)}
+            />
+          </div>
+
+          <div className="pt-3 border-t border-border/60">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1.5 mb-2">
+              <IconPhoto size={13} />
+              Logo dans les emails
+            </Label>
+            <LogoPicker
+              url={watch('email_logo_url')}
+              onPick={handleSelectLogo}
+              onClear={handleClearLogo}
+            />
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+              S'affiche en en-tête des emails (envoyés au client et au marchand). Format conseillé : PNG/SVG, hauteur ≤ 80px. Si vide, le nom du site est affiché en texte.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -200,6 +257,90 @@ function SwitchRow({
       </div>
       <Switch checked={checked} onCheckedChange={onChange} className="mt-1 shrink-0" />
     </label>
+  )
+}
+
+function ColorField({
+  label,
+  description,
+  value,
+  onChange,
+}: {
+  label: string
+  description?: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  const isValid = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)
+  return (
+    <div className="space-y-2">
+      <div>
+        <Label className="text-xs text-muted-foreground">{label}</Label>
+        {description && (
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={isValid ? value : '#0F766E'}
+          onChange={e => onChange(e.target.value)}
+          className="h-9 w-12 rounded border border-input cursor-pointer p-0.5 bg-background"
+          aria-label={label}
+        />
+        <Input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="#0F766E"
+          className="font-mono text-sm"
+        />
+      </div>
+    </div>
+  )
+}
+
+function LogoPicker({
+  url,
+  onPick,
+  onClear,
+}: {
+  url: string
+  onPick: () => void
+  onClear: () => void
+}) {
+  if (!url) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onPick}
+        className="gap-1.5 w-full sm:w-auto"
+      >
+        <IconPhoto size={14} />
+        Choisir une image dans la médiathèque
+      </Button>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
+      <div className="size-16 rounded-md bg-muted/40 ring-1 ring-border flex items-center justify-center overflow-hidden shrink-0">
+        <img src={url} alt="Logo email" className="max-h-full max-w-full object-contain" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground truncate font-mono">{url}</p>
+        <div className="flex gap-2 mt-2">
+          <Button type="button" variant="outline" size="sm" onClick={onPick} className="gap-1.5">
+            <IconPhoto size={13} />
+            Remplacer
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={onClear} className="gap-1.5 text-muted-foreground hover:text-destructive">
+            <IconTrash size={13} />
+            Retirer
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
 
