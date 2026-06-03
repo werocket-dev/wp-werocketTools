@@ -150,3 +150,28 @@
 .werocket-business-map-mount {
   font-family: 'Inter Variable', sans-serif;
 }
+
+/* ─── Reset border-color (Tailwind v4 ne le fait plus en base) ─── */
+/* Couvre nos containers React + tout composant shadcn (data-slot)
+   rendu via Radix Portal en dehors de nos scopes. */
+@layer base {
+  #werocket-app *,
+  #werocket-app *::before,
+  #werocket-app *::after,
+  #werocket-cookies-banner *,
+  #werocket-cookies-banner *::before,
+  #werocket-cookies-banner *::after,
+  .werocket-reviews-mount *,
+  .werocket-business-info-mount *,
+  .werocket-business-hours-mount *,
+  .werocket-business-map-mount *,
+  [data-slot],
+  [data-slot] *,
+  [data-slot] *::before,
+  [data-slot] *::after,
+  [data-radix-popper-content-wrapper] *,
+  [data-radix-popper-content-wrapper] *::before,
+  [data-radix-popper-content-wrapper] *::after {
+    border-color: var(--border);
+  }
+}

@@ -1,4 +1,4 @@
-import{b as Tr,g as _r,c as Se,r as c,j as w,R as M,d as Mt}from"./createReactComponent-CftkQJBM.js";var Tt=Tr();const zr=_r(Tt);/**
+import{b as Tr,g as _r,c as Se,r as c,j as w,R as M,d as Mt}from"./createReactComponent-Cr8OqQbY.js";var Tt=Tr();const zr=_r(Tt);/**
  * @license @tabler/icons-react v3.44.0 - MIT
  *
  * This source code is licensed under the MIT license.

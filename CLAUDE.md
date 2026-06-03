@@ -119,6 +119,65 @@ $this->register(new NewToolModule());
 
 Admin uses Tailwind CSS via CDN. For production, consider compiling Tailwind locally. Frontend modules use standalone CSS in `assets/css/`.
 
+## UI / Design Rules — IMPÉRATIF
+
+**Toute interface (admin ET front) DOIT utiliser exclusivement le template shadcn/ui installé (preset `b1GwVdBaa` — teal/neutral, Luma style).**
+
+### Règles strictes
+
+1. **Composants shadcn obligatoires** — Toujours utiliser les composants importés depuis `@/components/ui/*` :
+   - `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `CardAction`
+   - `Button` avec ses `variant` (`default` / `outline` / `ghost` / `secondary` / `destructive` / `link`) et `size`
+   - `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`
+   - `Accordion`, `Input`, `Textarea`, `Select`, `Switch`, `Checkbox`, `Badge`, `Tabs`, `Label`, `Separator`
+   - **Jamais** réimplémenter à la main avec `<div className="bg-white rounded-lg shadow ...">`
+
+2. **Aucun style en dur** — Interdit :
+   - Couleurs hex / rgb hardcodées dans le code React (`#10b981`, `bg-emerald-600`, `text-teal-500`, etc.)
+   - Bordures / shadows / radius custom qui ne viennent pas du composant shadcn (`shadow-lg`, `rounded-lg` à la place du natif `rounded-4xl` du Card)
+   - Backgrounds inline qui ignorent les CSS variables
+
+3. **Tokens de thème uniquement** — Pour toute couleur, utiliser exclusivement les tokens du preset :
+   - Couleurs : `bg-primary`, `text-foreground`, `text-muted-foreground`, `bg-card`, `bg-muted`, `border-border`, `bg-destructive`, etc.
+   - Radius : laisser les composants gérer (sinon `rounded-2xl`, `rounded-3xl`, `rounded-4xl`)
+   - Shadow : `shadow-md` / `shadow-xl` ou laisser le composant
+
+4. **Personnalisation du thème** — Si un module doit honorer une palette utilisateur (ex: bandeau cookies custom theme), **override les CSS variables shadcn** (`--primary`, `--background`, `--foreground`, `--border`, `--card`, etc.) sur un wrapper via `style={{}}` — jamais en injectant des couleurs hex sur les éléments individuels.
+
+5. **Dark mode** — Appliquer la classe `dark` sur un wrapper (le `@custom-variant dark` du preset s'occupe du reste).
+
+6. **Ajout d'un composant shadcn manquant** — `npx shadcn@latest add <component>` plutôt que de l'écrire à la main.
+
+### Anti-patterns à éviter
+
+```tsx
+// ❌ MAUVAIS — styles en dur, pas de Card shadcn
+<div className="bg-white rounded-lg shadow-sm border p-6">
+  <h2 className="text-emerald-600 font-bold">Titre</h2>
+  <button className="bg-teal-500 text-white px-4 py-2 rounded">Action</button>
+</div>
+
+// ✅ BON — composants shadcn + tokens
+<Card>
+  <CardHeader>
+    <CardTitle>Titre</CardTitle>
+  </CardHeader>
+  <CardFooter>
+    <Button>Action</Button>
+  </CardFooter>
+</Card>
+```
+
+```tsx
+// ❌ MAUVAIS — couleur hex inline sur le rendu
+<div style={{ borderColor: '#10b981', backgroundColor: '#ffffff' }}>
+
+// ✅ BON — override des CSS variables shadcn sur le wrapper
+<div style={{ ['--primary' as never]: userPrimaryHex }}>
+  <Button>...</Button>  {/* Le bouton utilise var(--primary) automatiquement */}
+</div>
+```
+
 ## Text Domain
 
 Use `werocket-tools` for all translatable strings:
