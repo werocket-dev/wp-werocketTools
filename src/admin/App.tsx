@@ -8,6 +8,7 @@ import { ReviewsSettings } from './pages/ReviewsSettings'
 import { BusinessSettings } from './pages/BusinessSettings'
 import { api } from '@/lib/api'
 import type { Module } from '@/lib/types'
+import { IconLoader2 } from '@tabler/icons-react'
 
 function getTab(): string {
   return new URLSearchParams(window.location.search).get('tab') ?? 'dashboard'
@@ -38,21 +39,26 @@ export function App() {
   const pageProps = { modules, onToggle: handleToggle }
 
   return (
-    <div id="werocket-app" className="werocket-wrap min-h-screen bg-gray-50">
+    <div id="werocket-app" className="werocket-wrap">
       <Header />
-      <div className="max-w-screen-xl mx-auto px-4 pb-8">
-        {!loading && (
-          <>
-            <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />
-            <div className="mt-4">
-              {tab === 'dashboard' && <Dashboard {...pageProps} onNavigate={navigate} />}
-              {tab === 'cookies' && <CookiesSettings />}
-              {tab === 'google_reviews' && <ReviewsSettings />}
-              {tab === 'google_business' && <BusinessSettings />}
-            </div>
-          </>
-        )}
-      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 mr-4">
+          <IconLoader2 size={20} className="animate-spin" />
+          <span className="text-sm">Chargement...</span>
+        </div>
+      ) : (
+        <>
+          <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />
+          <div className="mt-4 mr-4">
+            {tab === 'dashboard' && <Dashboard {...pageProps} onNavigate={navigate} />}
+            {tab === 'cookies' && <CookiesSettings />}
+            {tab === 'google_reviews' && <ReviewsSettings />}
+            {tab === 'google_business' && <BusinessSettings />}
+          </div>
+        </>
+      )}
+
       <Toaster richColors position="bottom-right" />
     </div>
   )

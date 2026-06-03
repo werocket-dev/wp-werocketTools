@@ -1,4 +1,4 @@
-import{c as m,r as i,j as s,d as x}from"./createReactComponent-CJMmm1Ex.js";import{I as u,B as a,d as f}from"./button-COMn04Wf.js";/**
+import{c as m,r as i,j as s,d as x}from"./createReactComponent-Pa3loU03.js";import{I as u,B as a,b as f}from"./button-Cm3HI5Ha.js";/**
  * @license @tabler/icons-react v3.44.0 - MIT
  *
  * This source code is licensed under the MIT license.

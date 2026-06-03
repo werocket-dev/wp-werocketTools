@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { IconStarFilled, IconKey, IconEye, IconLoader2 } from '@tabler/icons-react'
+import { IconKey, IconEye, IconLoader2 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { ModuleHeader } from '../components/ModuleHeader'
 import { useState } from 'react'
@@ -41,7 +41,6 @@ export function ReviewsSettings() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <ModuleHeader
-        icon={<IconStarFilled size={20} />}
         title="Avis Google"
         description="Affichage des avis Google My Business sur votre site"
         saving={saving}

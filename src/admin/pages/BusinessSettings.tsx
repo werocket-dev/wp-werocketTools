@@ -52,7 +52,6 @@ export function BusinessSettings() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <ModuleHeader
-        icon={<IconBuildingStore size={20} />}
         title="Google Business"
         description="Informations de votre fiche Google Business Profile"
         saving={saving}

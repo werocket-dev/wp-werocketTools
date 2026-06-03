@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { IconCookie, IconLoader2, IconPalette, IconFileText } from '@tabler/icons-react'
+import { IconLoader2, IconPalette, IconFileText } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { ModuleHeader } from '../components/ModuleHeader'
 
@@ -53,7 +53,6 @@ export function CookiesSettings() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <ModuleHeader
-        icon={<IconCookie size={20} />}
         title="Gestion des Cookies"
         description="Configuration du bandeau de consentement RGPD (Klaro)"
         saving={saving}

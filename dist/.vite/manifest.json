@@ -1,76 +1,76 @@
 {
-  "_IconPhone-BIWQvN3S.js": {
-    "file": "assets/IconPhone-BIWQvN3S.js",
+  "_IconPhone-NqlhISwH.js": {
+    "file": "assets/IconPhone-NqlhISwH.js",
     "name": "IconPhone",
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js"
+      "_createReactComponent-Pa3loU03.js"
     ]
   },
-  "_IconStarFilled-DqxNGdS0.js": {
-    "file": "assets/IconStarFilled-DqxNGdS0.js",
+  "_IconStarFilled-fTbo-yIb.js": {
+    "file": "assets/IconStarFilled-fTbo-yIb.js",
     "name": "IconStarFilled",
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js"
+      "_createReactComponent-Pa3loU03.js"
     ]
   },
-  "_button-COMn04Wf.js": {
-    "file": "assets/button-COMn04Wf.js",
+  "_button-Cm3HI5Ha.js": {
+    "file": "assets/button-Cm3HI5Ha.js",
     "name": "button",
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js"
+      "_createReactComponent-Pa3loU03.js"
     ]
   },
-  "_createReactComponent-CJMmm1Ex.js": {
-    "file": "assets/createReactComponent-CJMmm1Ex.js",
+  "_createReactComponent-DHd7tsnB.css": {
+    "file": "assets/createReactComponent-DHd7tsnB.css",
+    "src": "_createReactComponent-DHd7tsnB.css"
+  },
+  "_createReactComponent-Pa3loU03.js": {
+    "file": "assets/createReactComponent-Pa3loU03.js",
     "name": "createReactComponent",
     "css": [
-      "assets/createReactComponent-Y-QhX_Oh.css"
+      "assets/createReactComponent-DHd7tsnB.css"
     ]
   },
-  "_createReactComponent-Y-QhX_Oh.css": {
-    "file": "assets/createReactComponent-Y-QhX_Oh.css",
-    "src": "_createReactComponent-Y-QhX_Oh.css"
-  },
   "src/admin/main.tsx": {
-    "file": "assets/admin-CGjUZJMS.js",
+    "file": "assets/admin-V-IgH0OJ.js",
     "name": "admin",
     "src": "src/admin/main.tsx",
     "isEntry": true,
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js",
-      "_button-COMn04Wf.js",
-      "_IconStarFilled-DqxNGdS0.js",
-      "_IconPhone-BIWQvN3S.js"
+      "_createReactComponent-Pa3loU03.js",
+      "_button-Cm3HI5Ha.js",
+      "_IconStarFilled-fTbo-yIb.js",
+      "_IconPhone-NqlhISwH.js"
     ]
   },
   "src/frontend/business/main.tsx": {
-    "file": "assets/business-B7cpac4g.js",
+    "file": "assets/business-lYzBXdft.js",
     "name": "business",
     "src": "src/frontend/business/main.tsx",
     "isEntry": true,
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js",
-      "_IconPhone-BIWQvN3S.js"
+      "_createReactComponent-Pa3loU03.js",
+      "_IconPhone-NqlhISwH.js"
     ]
   },
   "src/frontend/cookies/main.tsx": {
-    "file": "assets/cookies-CdtR6r2d.js",
+    "file": "assets/cookies-BrxaEua9.js",
     "name": "cookies",
     "src": "src/frontend/cookies/main.tsx",
     "isEntry": true,
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js",
-      "_button-COMn04Wf.js"
+      "_createReactComponent-Pa3loU03.js",
+      "_button-Cm3HI5Ha.js"
     ]
   },
   "src/frontend/reviews/main.tsx": {
-    "file": "assets/reviews-D7VutX7I.js",
+    "file": "assets/reviews-CanywCvi.js",
     "name": "reviews",
     "src": "src/frontend/reviews/main.tsx",
     "isEntry": true,
     "imports": [
-      "_createReactComponent-CJMmm1Ex.js",
-      "_IconStarFilled-DqxNGdS0.js"
+      "_createReactComponent-Pa3loU03.js",
+      "_IconStarFilled-fTbo-yIb.js"
     ]
   }
 }
