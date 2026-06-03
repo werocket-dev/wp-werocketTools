@@ -1,4 +1,4 @@
-import{c as o}from"./createReactComponent-BfpEptNt.js";/**
+import{c as o}from"./createReactComponent-DKn2e-tp.js";/**
  * @license @tabler/icons-react v3.44.0 - MIT
  *
  * This source code is licensed under the MIT license.

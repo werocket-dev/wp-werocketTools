@@ -1,4 +1,4 @@
-import{b as Or,g as Mr,c as Se,r as c,j as C,R as M,d as Mt}from"./createReactComponent-BfpEptNt.js";var Tt=Or();const Tr=Mr(Tt);/**
+import{b as Or,g as Mr,c as Se,r as c,j as C,R as M,d as Mt}from"./createReactComponent-DKn2e-tp.js";var Tt=Or();const Tr=Mr(Tt);/**
  * @license @tabler/icons-react v3.44.0 - MIT
  *
  * This source code is licensed under the MIT license.

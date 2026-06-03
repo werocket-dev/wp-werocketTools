@@ -15,7 +15,10 @@ import { Badge } from '@/components/ui/badge'
 import {
   IconLoader2, IconDatabase, IconAdjustmentsHorizontal, IconPalette,
   IconFileText, IconCookie, IconBrandGoogle, IconCode,
+  IconBrandGoogleAnalytics, IconBrandMeta, IconBrandYoutube,
+  IconBrandLinkedin, IconBrandVimeo, IconTag, IconChartHistogram, IconAd,
 } from '@tabler/icons-react'
+import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
 import { ModuleHeader } from '../components/ModuleHeader'
 import { CookiesPreview } from '../components/CookiesPreview'
@@ -32,6 +35,21 @@ const PURPOSE_LABELS: Record<string, string> = {
   marketing: 'Marketing',
   preferences: 'Préférences',
 }
+
+type ServiceMeta = { Icon: typeof IconCookie; color: string; bg: string }
+
+const SERVICE_META: Record<string, ServiceMeta> = {
+  'google-analytics':    { Icon: IconBrandGoogleAnalytics, color: '#E37400', bg: 'rgb(255 247 237)' },
+  'google-tag-manager':  { Icon: IconTag,                  color: '#1A73E8', bg: 'rgb(239 246 255)' },
+  'google-ads':          { Icon: IconAd,                   color: '#34A853', bg: 'rgb(236 253 245)' },
+  'facebook-pixel':      { Icon: IconBrandMeta,            color: '#0866FF', bg: 'rgb(239 246 255)' },
+  'hotjar':              { Icon: IconChartHistogram,       color: '#FD3A5C', bg: 'rgb(255 241 242)' },
+  'linkedin-insight':    { Icon: IconBrandLinkedin,        color: '#0A66C2', bg: 'rgb(239 246 255)' },
+  'youtube':             { Icon: IconBrandYoutube,         color: '#FF0000', bg: 'rgb(254 242 242)' },
+  'vimeo':               { Icon: IconBrandVimeo,           color: '#1AB7EA', bg: 'rgb(236 254 255)' },
+}
+
+const FALLBACK_META: ServiceMeta = { Icon: IconCookie, color: 'var(--primary)', bg: 'color-mix(in oklch, var(--primary) 12%, transparent)' }
 
 export function CookiesSettings() {
   const [loading, setLoading] = useState(true)
@@ -333,73 +351,140 @@ export function CookiesSettings() {
           <Card>
             <CardHeader>
               <CardTitle>Services de tracking</CardTitle>
-              <CardDescription>Activez les services présents sur votre site et configurez leurs paramètres</CardDescription>
+              <CardDescription>
+                {services.filter(s => s.enabled).length} service(s) actif(s) sur {services.length}
+                {' · '}Cliquez sur une ligne pour configurer
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Accordion type="multiple">
-                {services.map((svc, i) => (
-                  <AccordionItem key={svc.name} value={svc.name}>
-                    <AccordionTrigger className="hover:no-underline py-3">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div onClick={e => e.stopPropagation()}>
-                          <Switch checked={svc.enabled} onCheckedChange={v => updateService(i, 'enabled', v)} />
+                {services.map((svc, i) => {
+                  const meta = SERVICE_META[svc.name] ?? FALLBACK_META
+                  const Icon = meta.Icon
+                  const cookieCount = svc._cookies_csv.split(',').map(s => s.trim()).filter(Boolean).length
+                  const purposesLabel = svc.purposes.map(p => PURPOSE_LABELS[p] ?? p).join(' · ')
+
+                  return (
+                    <AccordionItem key={svc.name} value={svc.name}>
+                      <AccordionTrigger className="hover:no-underline py-3 px-4 -mx-px gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div
+                            onClick={e => { e.preventDefault(); e.stopPropagation() }}
+                            onPointerDown={e => e.stopPropagation()}
+                            className="shrink-0"
+                          >
+                            <Switch
+                              checked={svc.enabled}
+                              onCheckedChange={v => updateService(i, 'enabled', v)}
+                              aria-label={`Activer ${svc.title || svc.name}`}
+                            />
+                          </div>
+
+                          <div
+                            className={cn(
+                              'size-10 rounded-2xl flex items-center justify-center shrink-0 transition-opacity',
+                              !svc.enabled && 'opacity-40 grayscale'
+                            )}
+                            style={{ backgroundColor: meta.bg }}
+                          >
+                            <Icon size={20} style={{ color: meta.color }} />
+                          </div>
+
+                          <div className="flex-1 min-w-0 text-left">
+                            <div className={cn('text-sm font-medium truncate', !svc.enabled && 'text-muted-foreground')}>
+                              {svc.title || svc.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate mt-0.5">
+                              {purposesLabel || <span className="italic">Aucune finalité</span>}
+                              {cookieCount > 0 && (
+                                <span className="ml-1.5 inline-flex items-center gap-1 text-muted-foreground/70">
+                                  · <IconCookie className="size-3" /> {cookieCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {svc.required && (
+                            <Badge variant="outline" className="shrink-0 font-normal">
+                              Requis
+                            </Badge>
+                          )}
                         </div>
-                        <span className="text-sm font-medium">{svc.title || svc.name}</span>
-                        {svc.enabled && <Badge variant="secondary" className="text-xs">Actif</Badge>}
-                        {svc.required && <Badge className="text-xs">Requis</Badge>}
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <Field label="Nom d'affichage">
-                          <Input value={svc.title} onChange={e => updateService(i, 'title', e.target.value)} />
+                      </AccordionTrigger>
+
+                      <AccordionContent className="pb-5 space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <Field label="Nom d'affichage">
+                            <Input value={svc.title} onChange={e => updateService(i, 'title', e.target.value)} />
+                          </Field>
+                          <Field label="Cookies (séparés par virgule)">
+                            <Input value={svc._cookies_csv} onChange={e => updateService(i, '_cookies_csv', e.target.value)} placeholder="_ga, _gid, ..." />
+                          </Field>
+                        </div>
+                        <Field label="Description">
+                          <Textarea value={svc.description} onChange={e => updateService(i, 'description', e.target.value)} rows={2} />
                         </Field>
-                        <Field label="Cookies (séparés par virgule)">
-                          <Input value={svc._cookies_csv} onChange={e => updateService(i, '_cookies_csv', e.target.value)} placeholder="_ga, _gid, ..." />
-                        </Field>
-                      </div>
-                      <Field label="Description">
-                        <Textarea value={svc.description} onChange={e => updateService(i, 'description', e.target.value)} rows={2} />
-                      </Field>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Finalités</p>
-                        <div className="flex flex-wrap gap-3">
-                          {PURPOSE_KEYS.map(pk => (
-                            <label key={pk} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                              <Checkbox
-                                checked={svc.purposes.includes(pk)}
-                                onCheckedChange={v => toggleServicePurpose(i, pk, !!v)}
-                                disabled={pk === 'necessary' && svc.required}
-                              />
-                              {PURPOSE_LABELS[pk]}
-                            </label>
-                          ))}
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">Finalités</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PURPOSE_KEYS.map(pk => {
+                              const active = svc.purposes.includes(pk)
+                              const disabled = pk === 'necessary' && svc.required
+                              return (
+                                <button
+                                  type="button"
+                                  key={pk}
+                                  onClick={() => !disabled && toggleServicePurpose(i, pk, !active)}
+                                  disabled={disabled}
+                                  className={cn(
+                                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
+                                    active
+                                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                                      : 'bg-background text-muted-foreground border-border hover:border-foreground/30 hover:text-foreground',
+                                    disabled && 'opacity-50 cursor-not-allowed'
+                                  )}
+                                >
+                                  {PURPOSE_LABELS[pk]}
+                                </button>
+                              )
+                            })}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Options avancées</p>
-                        <div className="flex flex-wrap gap-4">
-                          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                            <Checkbox checked={svc.required} onCheckedChange={v => updateService(i, 'required', !!v)} />
-                            Requis
-                          </label>
-                          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                            <Checkbox checked={svc.default} onCheckedChange={v => updateService(i, 'default', !!v)} />
-                            Activé par défaut
-                          </label>
-                          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                            <Checkbox checked={svc.opt_out} onCheckedChange={v => updateService(i, 'opt_out', !!v)} />
-                            Opt-out (chargé par défaut)
-                          </label>
-                          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                            <Checkbox checked={svc.only_once} onCheckedChange={v => updateService(i, 'only_once', !!v)} />
-                            Exécuter une seule fois
-                          </label>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">Options avancées</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <OptionCard
+                              label="Requis"
+                              description="Toujours actif, non désactivable"
+                              checked={svc.required}
+                              onChange={v => updateService(i, 'required', v)}
+                            />
+                            <OptionCard
+                              label="Activé par défaut"
+                              description="Service pré-coché à l'ouverture"
+                              checked={svc.default}
+                              onChange={v => updateService(i, 'default', v)}
+                            />
+                            <OptionCard
+                              label="Opt-out"
+                              description="Chargé par défaut, désactivable"
+                              checked={svc.opt_out}
+                              onChange={v => updateService(i, 'opt_out', v)}
+                            />
+                            <OptionCard
+                              label="Une seule fois"
+                              description="Exécuter le script un seul fois"
+                              checked={svc.only_once}
+                              onChange={v => updateService(i, 'only_once', v)}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  )
+                })}
               </Accordion>
             </CardContent>
           </Card>
@@ -505,6 +590,30 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>
+  )
+}
+
+function OptionCard({ label, description, checked, onChange }: {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <label
+      className={cn(
+        'flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all',
+        checked
+          ? 'border-primary/40 bg-primary/5'
+          : 'border-border bg-background hover:bg-muted/50'
+      )}
+    >
+      <Checkbox checked={checked} onCheckedChange={v => onChange(!!v)} className="mt-0.5" />
+      <div className="min-w-0">
+        <div className="text-sm font-medium leading-tight">{label}</div>
+        <p className="text-[11px] text-muted-foreground leading-snug mt-1">{description}</p>
+      </div>
+    </label>
   )
 }
 
