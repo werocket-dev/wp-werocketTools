@@ -17,6 +17,16 @@
   .werocket-cookies-scope,
   .werocket-reviews-mount,
   [data-slot="dialog-content"],
+  [data-slot="dialog-overlay"],
+  [data-slot="select-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="hover-card-content"],
+  [data-slot="tooltip-content"],
+  [data-slot="menubar-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="command-dialog"],
+  [data-slot="sheet-content"],
   [data-radix-popper-content-wrapper] {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -56,6 +66,9 @@
   .werocket-cookies-scope.dark,
   .werocket-reviews-mount.dark,
   [data-slot="dialog-content"].dark,
+  [data-slot="select-content"].dark,
+  [data-slot="popover-content"].dark,
+  [data-slot="dropdown-menu-content"].dark,
   [data-radix-popper-content-wrapper].dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -409,6 +422,62 @@
   background-color: var(--card) !important;
   color: var(--card-foreground) !important;
   border-color: var(--border) !important;
+}
+
+/* Card cookies front : restaure le padding shadcn que certains builders
+   (Elementor section padding 0) écrasent. py-6 = 1.5rem, px-6 sur header
+   /content/footer. On force directement sur les data-slot enfants. */
+.werocket-cookies-scope [data-slot="card"] {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+.werocket-cookies-scope [data-slot="card-header"],
+.werocket-cookies-scope [data-slot="card-content"],
+.werocket-cookies-scope [data-slot="card-footer"] {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+/* Radix portals : background popover pour Select / Popover / Dropdown qui
+   se montent hors de #werocket-app et perdaient leur fond car le builder
+   appliquait des règles globales sur [role="listbox"], [role="menu"] etc. */
+[data-slot="select-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="hover-card-content"],
+[data-slot="menubar-content"],
+[data-slot="context-menu-content"],
+[data-slot="command-dialog"] {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border-color: var(--border) !important;
+  font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  z-index: 9999 !important;
+}
+
+/* Items des Select / Dropdown : reset hover bg, padding cohérent */
+[data-slot="select-item"],
+[data-slot="dropdown-menu-item"],
+[data-slot="context-menu-item"],
+[data-slot="menubar-item"] {
+  background-color: transparent !important;
+  color: var(--popover-foreground) !important;
+  font-family: inherit !important;
+  text-transform: none !important;
+}
+[data-slot="select-item"][data-highlighted],
+[data-slot="select-item"]:hover,
+[data-slot="dropdown-menu-item"][data-highlighted],
+[data-slot="dropdown-menu-item"]:hover {
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+/* Tooltip : background dark inversé */
+[data-slot="tooltip-content"] {
+  background-color: var(--foreground) !important;
+  color: var(--background) !important;
+  z-index: 9999 !important;
 }
 
 /* Overlay : assure que le backdrop est visible même si le builder injecte
