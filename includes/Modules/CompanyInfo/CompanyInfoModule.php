@@ -26,6 +26,11 @@ class CompanyInfoModule extends AbstractModule {
 
         // Charge les template tags publics (werocket_company_logo, etc.)
         require_once __DIR__ . '/template-tags.php';
+
+        // Intégration native Breakdance — expose nos champs dans le
+        // Dynamic Data chooser sous "Infos société". No-op si Breakdance
+        // n'est pas actif sur le site.
+        BreakdanceIntegration::register();
     }
 
     /**
