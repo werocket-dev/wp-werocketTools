@@ -36,11 +36,23 @@ class CompanyInfoModule extends AbstractModule {
     /**
      * Override de AbstractModule::save_settings pour déclencher la synchro
      * du CPT singleton après chaque enregistrement.
+     *
+     * La sync est encapsulée dans try/catch pour ne JAMAIS faire échouer
+     * la sauvegarde principale (le settings option est déjà persisté à ce
+     * stade). Une erreur de sync (post_type non enregistré, attachment
+     * supprimé, conflit de slug, etc.) est loggée puis ignorée.
      */
     public function save_settings(array $data): bool {
         $result = parent::save_settings($data);
         if ($result) {
-            Cpt::sync_from_settings($this->get_settings());
+            try {
+                Cpt::sync_from_settings($this->get_settings());
+            } catch (\Throwable $e) {
+                error_log(
+                    '[WeRocketTools] CPT sync failed during company_info save : '
+                    . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine()
+                );
+            }
         }
         return $result;
     }

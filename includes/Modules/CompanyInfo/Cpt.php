@@ -55,21 +55,30 @@ class Cpt {
     /**
      * Crée le singleton si les settings existent déjà mais pas le post.
      * Utilise une option pour ne le faire qu'une fois par site.
+     *
+     * try/catch défensif : un fail ici ne doit JAMAIS casser le hook init
+     * (sinon tout le site renvoie 500).
      */
     public static function maybe_initial_sync(): void {
         $done = get_option('werocket_company_cpt_initial_sync', false);
         if ($done) return;
 
-        $settings = get_option('werocket_company_info_settings', null);
-        if (!is_array($settings) || empty($settings)) {
-            // Rien à synchroniser, on marque quand même comme fait pour ne
-            // pas re-tester à chaque page.
-            update_option('werocket_company_cpt_initial_sync', true, true);
-            return;
-        }
+        try {
+            $settings = get_option('werocket_company_info_settings', null);
+            if (!is_array($settings) || empty($settings)) {
+                update_option('werocket_company_cpt_initial_sync', true, true);
+                return;
+            }
 
-        self::sync_from_settings($settings);
-        update_option('werocket_company_cpt_initial_sync', true, true);
+            self::sync_from_settings($settings);
+            update_option('werocket_company_cpt_initial_sync', true, true);
+        } catch (\Throwable $e) {
+            error_log(
+                '[WeRocketTools] CPT initial sync failed : '
+                . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine()
+            );
+            // On ne marque PAS comme fait → on retentera au prochain init.
+        }
     }
 
     public static function register_post_type(): void {
@@ -119,11 +128,21 @@ class Cpt {
 
     /**
      * Synchronise les settings vers le post singleton.
-     * Appelé depuis CompanyInfoModule::after_save() (action hook).
+     * Appelé depuis CompanyInfoModule::save_settings().
+     *
+     * Toutes les opérations critiques sont gardées contre les erreurs
+     * (wp_insert_post peut renvoyer WP_Error, set_post_thumbnail peut
+     * échouer si l'attachment a été supprimé, etc.).
      *
      * @param array<string,mixed> $settings
      */
     public static function sync_from_settings(array $settings): int {
+        // Garde-fou : si le post type n'est pas encore enregistré (cas où
+        // sync est appelée avant l'action init 10), on bail.
+        if (!post_type_exists(self::POST_TYPE)) {
+            return 0;
+        }
+
         $post_id = self::get_singleton_id();
         $title   = trim((string) ($settings['name'] ?? ''));
         if ($title === '') {
@@ -135,33 +154,42 @@ class Cpt {
 
         $args = [
             'post_type'    => self::POST_TYPE,
-            'post_title'   => $title,
+            'post_title'   => wp_strip_all_tags($title),
             'post_status'  => 'publish',
-            'post_name'    => 'werocket-company-singleton', // slug fixe
+            'post_name'    => 'werocket-company-singleton',
         ];
 
         if ($post_id) {
             $args['ID'] = $post_id;
-            wp_update_post($args);
-        } else {
-            $post_id = (int) wp_insert_post($args, false);
-            if ($post_id === 0) {
+            $updated = wp_update_post($args, true);
+            if (is_wp_error($updated)) {
+                error_log('[WeRocketTools] wp_update_post failed: ' . $updated->get_error_message());
                 return 0;
             }
+        } else {
+            $inserted = wp_insert_post($args, true);
+            if (is_wp_error($inserted) || (int) $inserted === 0) {
+                $msg = is_wp_error($inserted) ? $inserted->get_error_message() : 'unknown';
+                error_log('[WeRocketTools] wp_insert_post failed: ' . $msg);
+                return 0;
+            }
+            $post_id = (int) $inserted;
         }
 
-        // Logo → featured image
+        // Logo → featured image (silent fail si l'attachment a été supprimé)
         $logo_id = (int) ($settings['logo_id'] ?? 0);
-        if ($logo_id > 0) {
+        if ($logo_id > 0 && get_post($logo_id)) {
             set_post_thumbnail($post_id, $logo_id);
         } else {
             delete_post_thumbnail($post_id);
         }
 
-        // Tous les autres champs → post_meta
+        // Tous les autres champs → post_meta. Cast en string pour la
+        // sécurité et exclusion explicite des arrays/objects.
         foreach ($settings as $key => $value) {
             if (in_array($key, self::EXCLUDED_FIELDS, true)) continue;
             if (is_array($value) || is_object($value)) continue;
+            if (!is_scalar($value) && $value !== null) continue;
             update_post_meta($post_id, self::META_PREFIX . $key, (string) $value);
         }
 
