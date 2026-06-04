@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   IconLoader2, IconBuildingSkyscraper, IconAddressBook, IconFileText,
   IconSearch, IconPhoto, IconTrash, IconExternalLink,
+  IconGavel, IconShieldLock, IconReceipt2,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { openMediaPicker } from '@/lib/wp-media'
@@ -340,50 +341,73 @@ export function CompanyInfoSettings() {
             </p>
           </div>
 
-          <Controller
-            control={control}
-            name="legal_mentions"
-            render={({ field }) => (
-              <LegalPageEditor
-                title="Mentions légales"
-                description="Obligation légale pour tout site web professionnel (LCEN 2004)"
-                shortcode='[werocket_legal type="mentions"]'
-                value={field.value || ''}
-                onChange={field.onChange}
-                variables={variables}
-              />
-            )}
-          />
+          <Tabs defaultValue="mentions">
+            <TabsList>
+              <TabsTrigger value="mentions">
+                <IconGavel className="size-4" />
+                Mentions légales
+              </TabsTrigger>
+              <TabsTrigger value="privacy">
+                <IconShieldLock className="size-4" />
+                Confidentialité
+              </TabsTrigger>
+              <TabsTrigger value="cgv">
+                <IconReceipt2 className="size-4" />
+                CGV / CGU
+              </TabsTrigger>
+            </TabsList>
 
-          <Controller
-            control={control}
-            name="legal_privacy"
-            render={({ field }) => (
-              <LegalPageEditor
-                title="Politique de confidentialité"
-                description="Obligatoire dès lors que tu collectes des données personnelles (RGPD)"
-                shortcode='[werocket_legal type="privacy"]'
-                value={field.value || ''}
-                onChange={field.onChange}
-                variables={variables}
+            <TabsContent value="mentions" className="mt-4">
+              <Controller
+                control={control}
+                name="legal_mentions"
+                render={({ field }) => (
+                  <LegalPageEditor
+                    title="Mentions légales"
+                    description="Obligation légale pour tout site web professionnel (LCEN 2004)"
+                    shortcode='[werocket_legal type="mentions"]'
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    variables={variables}
+                  />
+                )}
               />
-            )}
-          />
+            </TabsContent>
 
-          <Controller
-            control={control}
-            name="legal_cgv"
-            render={({ field }) => (
-              <LegalPageEditor
-                title="CGV / CGU"
-                description="Conditions générales de vente ou d'utilisation"
-                shortcode='[werocket_legal type="cgv"]'
-                value={field.value || ''}
-                onChange={field.onChange}
-                variables={variables}
+            <TabsContent value="privacy" className="mt-4">
+              <Controller
+                control={control}
+                name="legal_privacy"
+                render={({ field }) => (
+                  <LegalPageEditor
+                    title="Politique de confidentialité"
+                    description="Obligatoire dès lors que tu collectes des données personnelles (RGPD)"
+                    shortcode='[werocket_legal type="privacy"]'
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    variables={variables}
+                  />
+                )}
               />
-            )}
-          />
+            </TabsContent>
+
+            <TabsContent value="cgv" className="mt-4">
+              <Controller
+                control={control}
+                name="legal_cgv"
+                render={({ field }) => (
+                  <LegalPageEditor
+                    title="CGV / CGU"
+                    description="Conditions générales de vente ou d'utilisation"
+                    shortcode='[werocket_legal type="cgv"]'
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    variables={variables}
+                  />
+                )}
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </form>

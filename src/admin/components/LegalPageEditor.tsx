@@ -137,7 +137,7 @@ export function LegalPageEditor({
           onChange={e => onChange(e.target.value)}
           onContextMenu={handleContextMenu}
           placeholder={placeholder ?? 'Saisissez votre contenu… utilisez {company.name}, {company.siret}, etc.'}
-          className="min-h-[280px] font-mono text-[13px] leading-relaxed"
+          className="min-h-[480px] font-mono text-[13px] leading-relaxed"
         />
       </CardContent>
 
