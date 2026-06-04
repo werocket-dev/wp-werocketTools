@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { type CookiesSettings } from '@/lib/types'
 import { CookiesBanner } from './CookiesBanner'
 import { CookiesSettingsDialog } from './CookiesSettingsDialog'
@@ -42,7 +43,7 @@ export function CookiesRoot({ config }: Props) {
     }
   }, [config])
 
-  return (
+  return createPortal(
     <div
       className={cn(
         'werocket-cookies-scope font-sans',
@@ -67,6 +68,7 @@ export function CookiesRoot({ config }: Props) {
         config={config}
         onConsentSaved={() => setBannerVisible(false)}
       />
-    </div>
+    </div>,
+    document.body
   )
 }

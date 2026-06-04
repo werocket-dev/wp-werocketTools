@@ -14,10 +14,10 @@ interface Props {
 }
 
 const POSITION_CLASSES: Record<string, string> = {
-  'bottom-left':  'fixed bottom-4 left-4 max-w-md w-[calc(100%-2rem)]',
-  'bottom-right': 'fixed bottom-4 right-4 max-w-md w-[calc(100%-2rem)]',
-  'top-left':     'fixed top-4 left-4 max-w-md w-[calc(100%-2rem)]',
-  'top-right':    'fixed top-4 right-4 max-w-md w-[calc(100%-2rem)]',
+  'bottom-left':  'fixed bottom-4 left-4 right-4 sm:right-auto max-w-md',
+  'bottom-right': 'fixed bottom-4 right-4 left-4 sm:left-auto max-w-md',
+  'top-left':     'fixed top-4 left-4 right-4 sm:right-auto max-w-md',
+  'top-right':    'fixed top-4 right-4 left-4 sm:left-auto max-w-md',
   'center':       'fixed inset-x-4 bottom-4 max-w-3xl mx-auto',
 }
 
