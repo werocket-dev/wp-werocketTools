@@ -113,6 +113,8 @@ export interface CompanyInfoSettings {
   email: string
   website: string
   logo_id: number
+  /** Computed côté serveur depuis logo_id — read-only, pas dans le payload de save */
+  logo_url?: string
   legal_mentions: string
   legal_privacy: string
   legal_cgv: string
