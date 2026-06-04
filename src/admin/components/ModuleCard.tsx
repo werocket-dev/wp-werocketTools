@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { IconSettings } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { getModuleCategory } from '@/lib/modules'
+import { ModuleIcon } from '@/lib/module-icons'
 import type { Module } from '@/lib/types'
 
 interface Props {
@@ -45,10 +46,9 @@ export function ModuleCard({ module, onToggle, onNavigate }: Props) {
       <Card className="h-full hover:ring-foreground/10 transition-all">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 [&_svg]:size-5"
-              dangerouslySetInnerHTML={{ __html: module.icon }}
-            />
+            <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <ModuleIcon id={module.id} size={20} />
+            </div>
             <CardTitle className="text-base font-bold">{module.name}</CardTitle>
           </div>
           <CardAction>

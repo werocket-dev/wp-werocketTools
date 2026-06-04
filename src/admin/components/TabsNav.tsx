@@ -1,13 +1,7 @@
-import { IconLayoutDashboard, IconCookie, IconStarFilled, IconArrowBackUp, IconBuildingStore } from '@tabler/icons-react'
+import { IconLayoutDashboard } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
+import { ModuleIcon } from '@/lib/module-icons'
 import type { Module } from '@/lib/types'
-
-const MODULE_ICONS: Record<string, React.ReactNode> = {
-  cookies: <IconCookie size={18} />,
-  google_reviews: <IconStarFilled size={18} />,
-  retractation: <IconArrowBackUp size={18} />,
-  click_collect: <IconBuildingStore size={18} />,
-}
 
 interface Props {
   modules: Module[]
@@ -35,7 +29,7 @@ export function TabsNav({ modules, currentTab, onNavigate }: Props) {
       </button>
       {modules.filter(m => m.active).map(m => (
         <button type="button" key={m.id} className={tabClass(currentTab === m.id)} onClick={() => onNavigate(m.id)}>
-          {MODULE_ICONS[m.id] ?? null}
+          <ModuleIcon id={m.id} size={18} />
           {m.name}
         </button>
       ))}
