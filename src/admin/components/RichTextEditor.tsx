@@ -1,10 +1,13 @@
 import { useEffect, forwardRef, useImperativeHandle } from 'react'
-import { useEditor, EditorContent, type Editor } from '@tiptap/react'
+import { useEditor, EditorContent, ReactRenderer, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Typography from '@tiptap/extension-typography'
 import Underline from '@tiptap/extension-underline'
+import { SlashCommand, type SlashItem } from './editor/SlashCommand'
+import { filterSlashItems } from './editor/slash-items'
+import { SlashMenu, type SlashMenuHandle } from './editor/SlashMenu'
 import {
   IconBold, IconItalic, IconUnderline, IconStrikethrough,
   IconH1, IconH2, IconH3,
@@ -51,6 +54,56 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function R
         openOnClick: false,
         autolink: true,
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
+      }),
+      SlashCommand.configure({
+        suggestion: {
+          items: ({ query }: { query: string }) => filterSlashItems(query),
+          render: () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let component: ReactRenderer<SlashMenuHandle, any> | null = null
+
+            return {
+              onStart: (props: {
+                editor: Editor
+                clientRect?: (() => DOMRect | null) | null
+                items: SlashItem[]
+                command: (item: SlashItem) => void
+              }) => {
+                component = new ReactRenderer(SlashMenu, {
+                  props: {
+                    items: props.items,
+                    command: props.command,
+                    clientRect: props.clientRect,
+                  },
+                  editor: props.editor,
+                })
+              },
+              onUpdate: (props: {
+                clientRect?: (() => DOMRect | null) | null
+                items: SlashItem[]
+                command: (item: SlashItem) => void
+              }) => {
+                component?.updateProps({
+                  items: props.items,
+                  command: props.command,
+                  clientRect: props.clientRect,
+                })
+              },
+              onKeyDown: (props: { event: KeyboardEvent }) => {
+                if (props.event.key === 'Escape') {
+                  component?.destroy()
+                  component = null
+                  return true
+                }
+                return component?.ref?.onKeyDown(props.event) ?? false
+              },
+              onExit: () => {
+                component?.destroy()
+                component = null
+              },
+            }
+          },
+        },
       }),
     ],
     content: value || '',
