@@ -18,6 +18,26 @@ class CompanyInfoModule extends AbstractModule {
     public function init(): void {
         new Shortcodes($this);
         new RestApi($this);
+
+        // Enregistre le CPT singleton "werocket_company" mirror des settings.
+        // Le post est créé/mis à jour automatiquement à chaque save (cf.
+        // override save_settings ci-dessous).
+        Cpt::register();
+
+        // Charge les template tags publics (werocket_company_logo, etc.)
+        require_once __DIR__ . '/template-tags.php';
+    }
+
+    /**
+     * Override de AbstractModule::save_settings pour déclencher la synchro
+     * du CPT singleton après chaque enregistrement.
+     */
+    public function save_settings(array $data): bool {
+        $result = parent::save_settings($data);
+        if ($result) {
+            Cpt::sync_from_settings($this->get_settings());
+        }
+        return $result;
     }
 
     protected function get_default_settings(): array {
