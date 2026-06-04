@@ -61,9 +61,9 @@ export function CompanyInfoSettings() {
       .then(s => {
         reset(s.settings)
         setLookupValue(s.settings.siret || s.settings.siren || '')
-        if (s.settings.logo_id) {
-          fetchLogoUrl(s.settings.logo_id).then(setLogoUrl).catch(() => {})
-        }
+        // logo_url est computed côté serveur (CompanyInfoModule::get_settings)
+        // → on l'utilise directement, plus besoin d'appel /wp/v2/media/{id}.
+        setLogoUrl(s.settings.logo_url || '')
       })
       .catch(e => {
         toast.error(e instanceof Error ? e.message : 'Impossible de charger les réglages')
@@ -78,16 +78,6 @@ export function CompanyInfoSettings() {
       })
   }, [reset])
 
-  async function fetchLogoUrl(id: number): Promise<string> {
-    const root = document.getElementById('werocket-admin-root')
-    const restUrl = root?.dataset.restUrl ?? '/wp-json/'
-    const nonce = root?.dataset.nonce ?? ''
-    const res = await fetch(`${restUrl}wp/v2/media/${id}`, { headers: { 'X-WP-Nonce': nonce } })
-    if (!res.ok) return ''
-    const data = await res.json()
-    return data?.source_url ?? ''
-  }
-
   async function onSubmit(data: TCompanyInfo) {
     setSaving(true)
     try {
@@ -99,12 +89,9 @@ export function CompanyInfoSettings() {
       // que le state matche exactement la DB.
       const saved = resp?.settings ?? data
       reset(saved, { keepDirty: false })
-      // Si le logo_id a changé, refetch son URL pour mettre à jour la preview
-      if (saved.logo_id && saved.logo_id !== 0) {
-        fetchLogoUrl(saved.logo_id).then(setLogoUrl).catch(() => {})
-      } else {
-        setLogoUrl('')
-      }
+      // Le serveur renvoie logo_url computed depuis logo_id. Si vide, le
+      // logo_id n'a pas été sauvegardé OU le média a été supprimé.
+      setLogoUrl(saved.logo_url || '')
       toast.success('Infos société enregistrées')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Erreur lors de l\'enregistrement')

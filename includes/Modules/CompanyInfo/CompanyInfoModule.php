@@ -131,4 +131,31 @@ class CompanyInfoModule extends AbstractModule {
     public function render_settings(): void {
         // Délégué à l'UI React via #werocket-admin-root
     }
+
+    /**
+     * Override pour exposer le champ calculé `logo_url` (résolu via
+     * wp_get_attachment_image_url depuis logo_id) directement dans la
+     * réponse REST. Évite à l'UI React de devoir appeler /wp/v2/media/{id}
+     * qui peut échouer silencieusement selon les permissions ou réécritures
+     * d'URL du site (CDN, sous-dossiers WP, etc.).
+     *
+     * Le champ logo_url est en lecture seule : il ne fait pas partie du
+     * payload de sanitize_settings(), donc ré-écrire dessus depuis l'UI
+     * n'a aucun effet (recalculé à chaque get).
+     */
+    public function get_settings(): array {
+        $settings = parent::get_settings();
+
+        $logo_id = (int) ($settings['logo_id'] ?? 0);
+        $settings['logo_url'] = '';
+
+        if ($logo_id > 0) {
+            $url = wp_get_attachment_image_url($logo_id, 'full');
+            if (is_string($url) && $url !== '') {
+                $settings['logo_url'] = $url;
+            }
+        }
+
+        return $settings;
+    }
 }
