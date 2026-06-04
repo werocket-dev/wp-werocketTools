@@ -30,23 +30,39 @@ export function CompanyInfoSettings() {
   const [lookupValue, setLookupValue] = useState('')
   const [lookingUp, setLookingUp] = useState(false)
   const { setSaving } = useRegisterSaveForm(FORM_ID)
-  const { register, handleSubmit, setValue, reset, control } = useForm<TCompanyInfo>()
+  const { register, handleSubmit, setValue, reset, control } = useForm<TCompanyInfo>({
+    defaultValues: {
+      siren: '', siret: '', name: '', commercial_name: '', legal_form: '',
+      capital: '', rcs: '', vat: '', ape_code: '', ape_label: '',
+      director: '', creation_date: '',
+      street: '', postal_code: '', city: '', country: 'France',
+      phone: '', email: '', website: '', logo_id: 0,
+      legal_mentions: '', legal_privacy: '', legal_cgv: '',
+    },
+  })
 
   useEffect(() => {
-    Promise.all([
-      api.get<{ settings: TCompanyInfo }>('/settings/company_info'),
-      api.get<{ variables: CompanyVariable[] }>('/company-info/variables'),
-    ])
-      .then(([s, v]) => {
+    // Settings : essentiel. Variables : nice-to-have (peut échouer si module
+    // pas encore actif côté init() — l'UI fonctionne quand même).
+    api.get<{ settings: TCompanyInfo }>('/settings/company_info')
+      .then(s => {
         reset(s.settings)
-        setVariables(v.variables)
-        setLookupValue(s.settings.siret || s.settings.siren)
+        setLookupValue(s.settings.siret || s.settings.siren || '')
         if (s.settings.logo_id) {
-          // Resolve via WP media API (use the same trick as other modules)
           fetchLogoUrl(s.settings.logo_id).then(setLogoUrl).catch(() => {})
         }
       })
+      .catch(e => {
+        toast.error(e instanceof Error ? e.message : 'Impossible de charger les réglages')
+      })
       .finally(() => setLoading(false))
+
+    api.get<{ variables: CompanyVariable[] }>('/company-info/variables')
+      .then(v => setVariables(v.variables))
+      .catch(() => {
+        // Endpoint indispo (module pas init()) — fallback minimal
+        setVariables([])
+      })
   }, [reset])
 
   async function fetchLogoUrl(id: number): Promise<string> {
