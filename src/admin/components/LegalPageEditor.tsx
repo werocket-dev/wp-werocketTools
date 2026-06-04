@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Popover,
   PopoverContent,
@@ -11,6 +10,7 @@ import { IconCopy, IconCheck, IconBraces } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { CompanyVariable } from '@/lib/types'
+import { RichTextEditor, type RichTextEditorHandle } from './RichTextEditor'
 
 interface Props {
   title: string
@@ -31,7 +31,7 @@ export function LegalPageEditor({
   variables,
   placeholder,
 }: Props) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const editorRef = useRef<RichTextEditorHandle>(null)
   const [copied, setCopied] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [variablesOpen, setVariablesOpen] = useState(false)
@@ -48,31 +48,13 @@ export function LegalPageEditor({
     }
   }, [contextMenu])
 
-  function insertAtCursor(text: string) {
-    const ta = textareaRef.current
-    if (!ta) {
-      onChange(value + text)
-      return
-    }
-    const start = ta.selectionStart ?? value.length
-    const end = ta.selectionEnd ?? value.length
-    const next = value.slice(0, start) + text + value.slice(end)
-    onChange(next)
-    // Repositionne le curseur après la variable insérée
-    requestAnimationFrame(() => {
-      ta.focus()
-      const pos = start + text.length
-      ta.setSelectionRange(pos, pos)
-    })
-  }
-
   function handleInsertVariable(key: string) {
-    insertAtCursor(`{${key}}`)
+    editorRef.current?.insertContent(`{${key}}`)
     setVariablesOpen(false)
     setContextMenu(null)
   }
 
-  function handleContextMenu(e: React.MouseEvent<HTMLTextAreaElement>) {
+  function handleContextMenu(e: React.MouseEvent) {
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY })
   }
@@ -116,7 +98,7 @@ export function LegalPageEditor({
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-xs text-muted-foreground">
-            Astuce : <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">clic-droit</kbd> dans le texte pour insérer une variable.
+            Astuce : <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">clic-droit</kbd> dans l'éditeur pour insérer une variable.
           </p>
           <Popover open={variablesOpen} onOpenChange={setVariablesOpen}>
             <PopoverTrigger asChild>
@@ -131,13 +113,12 @@ export function LegalPageEditor({
           </Popover>
         </div>
 
-        <Textarea
-          ref={textareaRef}
+        <RichTextEditor
+          ref={editorRef}
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={onChange}
           onContextMenu={handleContextMenu}
-          placeholder={placeholder ?? 'Saisissez votre contenu… utilisez {company.name}, {company.siret}, etc.'}
-          className="min-h-[480px] font-mono text-[13px] leading-relaxed"
+          placeholder={placeholder}
         />
       </CardContent>
 
