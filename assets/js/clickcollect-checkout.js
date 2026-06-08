@@ -33,13 +33,30 @@
     }
 
     function mountFromExistingDom() {
-        bindRefs($('.wr-cc-wrapper').get(0));
+        bindRefs($('.wr-cc-wrapper').not('.wr-cc-wrapper-block').get(0));
         if (!rootEl) return;
         configureUi();
         applyVisibilityLegacy();
         attachEvents();
         restoreSelection();
-        $(document.body).on('updated_checkout updated_shipping_method', applyVisibilityLegacy);
+
+        // Sur updated_checkout, WC re-rend INTÉGRALEMENT le bloc order_review,
+        // ce qui détruit notre <tr class="wr-cc-wrapper"> et le remplace par
+        // une copie fraîche (rendue par le hook woocommerce_review_order_after_shipping)
+        // avec style="display:none;". Notre $wrapper cached devient alors un
+        // noeud orphelin et toggle(visible) n'a aucun effet sur le DOM visible.
+        //
+        // → On re-bind toutes les références si l'élément en DOM a changé.
+        $(document.body).on('updated_checkout updated_shipping_method', function () {
+            var fresh = $('.wr-cc-wrapper').not('.wr-cc-wrapper-block').get(0);
+            if (fresh && fresh !== rootEl) {
+                bindRefs(fresh);
+                configureUi();
+                attachEvents();
+                restoreSelection();
+            }
+            applyVisibilityLegacy();
+        });
     }
 
     function watchBlockCheckout() {
