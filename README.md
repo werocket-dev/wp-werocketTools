@@ -10,23 +10,9 @@ Plugin WordPress pour agences : gestion du consentement cookies (GDPR), affichag
 
 ## Mises à jour automatiques
 
-Le plugin se met à jour automatiquement depuis ce dépôt GitHub privé. Pour activer les updates dans le back-office WordPress, ajouter dans le fichier `wp-config.php` du site :
+Le plugin se met à jour automatiquement depuis ce dépôt GitHub **public** via le Plugin Update Checker v5 — aucune configuration côté `wp-config.php` n'est nécessaire.
 
-```php
-define( 'WEROCKET_TOOLS_GH_TOKEN', 'ghp_xxxxxxxxxxxxxxxxxxxx' );
-```
-
-Le PAT (Personal Access Token) GitHub doit avoir les droits **Contents: Read-only** sur le dépôt `blablaa-lab/we-wp-werocketTools`.
-
-Une fois configuré, les mises à jour apparaissent dans **Tableau de bord → Mises à jour**, comme n'importe quel plugin WordPress.
-
-### Générer un PAT GitHub
-
-1. GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-2. Cliquer **Generate new token**
-3. Repository access : sélectionner uniquement `we-wp-werocketTools`
-4. Permissions : **Contents → Read-only**
-5. Copier le token et le coller dans `wp-config.php`
+Les mises à jour apparaissent dans **Tableau de bord → Mises à jour**, comme n'importe quel plugin WordPress. WordPress vérifie les updates toutes les 12h ; pour forcer un check immédiat : **Tableau de bord → Mises à jour → "Vérifier à nouveau"**.
 
 ## Développement
 
