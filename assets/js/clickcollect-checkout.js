@@ -218,6 +218,19 @@
         CC.locations.forEach(function (loc) {
             $location.append($('<option/>').val(loc.id).text(loc.name));
         });
+
+        // Auto-sélection si UNE seule location dispo : pas de "choisir dans
+        // un dropdown d'un seul élément", on présélectionne directement.
+        // Ne touche pas si l'utilisateur avait déjà fait un choix (CC.current).
+        if (CC.locations.length === 1 && !(CC.current && CC.current.location)) {
+            var onlyLoc = CC.locations[0];
+            $location.val(onlyLoc.id);
+            // Sync CC.current pour que restoreSelection() qui suit dans la
+            // chaîne mount/configureUi/restoreSelection prenne ce choix en
+            // compte, et que les re-binds futurs (sur updated_checkout) le
+            // conservent.
+            CC.current = { location: onlyLoc.id, date: '', time: '' };
+        }
     }
 
     function getLocation(id) {
@@ -412,12 +425,24 @@
         if (!CC.ajaxUrl) return;
         if (saveTimer) clearTimeout(saveTimer);
         saveTimer = setTimeout(function () {
+            var location = ($location && $location.val()) || '';
+            var date     = ($dateInput && $dateInput.val()) || '';
+            var time     = ($timeInput && $timeInput.val()) || '';
+
+            // CRITIQUE : on synchronise CC.current avec les valeurs DOM
+            // courantes AVANT le trigger update_checkout. Sinon, quand WC
+            // re-rend l'order_review en réponse à notre ajax, notre handler
+            // updated_checkout appelle restoreSelection() qui lit CC.current
+            // figé à la valeur initiale du page load → la sélection user
+            // serait reset à chaque interaction.
+            CC.current = { location: location, date: date, time: time };
+
             var payload = {
                 action: 'wr_cc_update_session',
                 nonce: CC.nonce,
-                location: ($location && $location.val()) || '',
-                date: ($dateInput && $dateInput.val()) || '',
-                time: ($timeInput && $timeInput.val()) || ''
+                location: location,
+                date: date,
+                time: time
             };
             $.post(CC.ajaxUrl, payload, function () {
                 $(document.body).trigger('update_checkout');
