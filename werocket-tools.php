@@ -3,7 +3,7 @@
  * Plugin Name: WeRocket Tools
  * Plugin URI: https://werocket.fr
  * Description: Suite d'outils pour agences : gestion des cookies, avis Google, informations entreprise Google Business.
- * Version: 1.2.14
+ * Version: 1.2.15
  * Author: WeRocket
  * Author URI: https://werocket.fr
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('WEROCKET_TOOLS_VERSION', '1.2.14');
+define('WEROCKET_TOOLS_VERSION', '1.2.15');
 define('WEROCKET_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WEROCKET_TOOLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WEROCKET_TOOLS_PLUGIN_BASENAME', plugin_basename(__FILE__));
