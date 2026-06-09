@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -59,7 +59,7 @@ export function CookiesSettings() {
   const { setSaving } = useRegisterSaveForm(FORM_ID)
   const [services, setServices] = useState<ServiceWithCsv[]>([])
 
-  const { register, handleSubmit, setValue, watch, reset } = useForm<FormValues>()
+  const { register, handleSubmit, setValue, watch, reset, control } = useForm<FormValues>()
 
   const loadSettings = useCallback(async () => {
     const data = await api.get<{ settings: CookiesSettings }>('/settings/cookies')
@@ -246,16 +246,35 @@ export function CookiesSettings() {
                     ['color_toggle_on', 'Toggle activé'],
                     ['color_toggle_off', 'Toggle désactivé'],
                   ] as [keyof FormValues, string][]).map(([name, label]) => (
-                    <Field key={name} label={label}>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="color"
-                          {...register(name)}
-                          className="h-9 w-14 shrink-0 cursor-pointer p-1"
-                        />
-                        <Input {...register(name)} className="font-mono text-sm" placeholder="#000000" />
-                      </div>
-                    </Field>
+                    <Controller
+                      key={name}
+                      name={name}
+                      control={control}
+                      render={({ field }) => {
+                        const raw = typeof field.value === 'string' ? field.value : ''
+                        const pickerValue = /^#[0-9a-fA-F]{6}$/.test(raw) ? raw : '#000000'
+                        return (
+                          <Field label={label}>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="color"
+                                value={pickerValue}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                onBlur={field.onBlur}
+                                className="h-9 w-14 shrink-0 cursor-pointer p-1"
+                              />
+                              <Input
+                                value={raw}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                onBlur={field.onBlur}
+                                placeholder="#000000"
+                                className="font-mono text-sm"
+                              />
+                            </div>
+                          </Field>
+                        )
+                      }}
+                    />
                   ))}
                 </CardContent>
               </Card>
