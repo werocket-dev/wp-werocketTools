@@ -17,6 +17,13 @@ class LoginCustomizer {
         add_filter('login_headerurl',  [$this, 'filter_logo_url']);
         add_filter('login_headertext', [$this, 'filter_logo_text']);
         add_filter('login_body_class', [$this, 'filter_body_class']);
+        // Masque le sélecteur de langue (WP 5.9+) — il s'insère en dehors
+        // du grid 2 colonnes et casse le centrage vertical du formulaire.
+        add_filter('login_display_language_dropdown', [$this, 'filter_language_dropdown']);
+    }
+
+    public function filter_language_dropdown(bool $display): bool {
+        return $this->is_enabled() ? false : $display;
     }
 
     private function settings(): array {
