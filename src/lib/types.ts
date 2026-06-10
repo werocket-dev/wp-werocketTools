@@ -128,6 +128,10 @@ export interface CompanyInfoSettings {
   login_cover_id: number
   /** Computed côté serveur depuis login_cover_id — read-only */
   login_cover_url?: string
+  login_logo_size: number
+  /** '' = couleur WordPress par défaut */
+  login_button_bg_color: string
+  login_button_text_color: string
   legal_mentions: string
   legal_privacy: string
   legal_cgv: string

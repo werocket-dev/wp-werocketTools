@@ -7,15 +7,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
 import {
-  IconLoader2, IconBuildingSkyscraper, IconAddressBook, IconFileText,
+  IconLoader2, IconBuildingSkyscraper, IconFileText,
   IconSearch, IconPhoto, IconTrash, IconExternalLink, IconPalette,
   IconGavel, IconShieldLock, IconReceipt2, IconLogin2,
+  IconRuler2, IconDroplet, IconRestore,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import { openMediaPicker } from '@/lib/wp-media'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import { LegalPageEditor } from '../components/LegalPageEditor'
+import { FigmaSlider } from '../components/layout-builder/FigmaSlider'
 import type { CompanyInfoSettings as TCompanyInfo, CompanyVariable } from '@/lib/types'
 
 const FORM_ID = 'wr-form-company-info'
@@ -40,6 +44,7 @@ export function CompanyInfoSettings() {
       street: '', postal_code: '', city: '', country: 'France',
       phone: '', email: '', website: '', logo_id: 0,
       login_enabled: false, login_show_logo: true, login_cover_id: 0,
+      login_logo_size: 64, login_button_bg_color: '', login_button_text_color: '',
       legal_mentions: '', legal_privacy: '', legal_cgv: '',
     },
   })
@@ -196,11 +201,7 @@ export function CompanyInfoSettings() {
         <TabsList>
           <TabsTrigger value="identity">
             <IconBuildingSkyscraper className="size-4" />
-            Identité
-          </TabsTrigger>
-          <TabsTrigger value="contact">
-            <IconAddressBook className="size-4" />
-            Coordonnées
+            Identité & Coordonnées
           </TabsTrigger>
           <TabsTrigger value="branding">
             <IconPalette className="size-4" />
@@ -303,12 +304,7 @@ export function CompanyInfoSettings() {
                 </Field>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
 
-        {/* ───── Onglet COORDONNÉES ───── */}
-        <TabsContent value="contact" className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="font-bold">Adresse du siège</CardTitle>
@@ -347,158 +343,240 @@ export function CompanyInfoSettings() {
                 </Field>
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
 
         {/* ───── Onglet PERSONNALISATION ───── */}
         <TabsContent value="branding" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-bold flex items-center gap-2">
-                <IconPhoto className="size-4 text-primary" />
-                Logo de la société
-              </CardTitle>
-              <CardDescription>
-                Utilisé dans les en-têtes, les emails et le shortcode{' '}
-                <code className="text-[11px] font-mono bg-muted px-1 py-0.5 rounded">[company_logo]</code>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <input type="hidden" {...register('logo_id', { valueAsNumber: true })} />
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="size-24 rounded-2xl border border-border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
-                  ) : (
-                    <IconPhoto className="size-8 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={handleSelectLogo}>
-                    <IconPhoto className="size-4" />
-                    {logoUrl ? 'Changer' : 'Sélectionner'}
-                  </Button>
-                  {logoUrl && (
-                    <Button type="button" variant="ghost" onClick={handleClearLogo}>
-                      <IconTrash className="size-4" />
-                      Retirer
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <input type="hidden" {...register('logo_id', { valueAsNumber: true })} />
+          <input type="hidden" {...register('login_cover_id', { valueAsNumber: true })} />
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <CardTitle className="font-bold flex items-center gap-2">
-                    <IconLogin2 className="size-4 text-primary" />
-                    Page de connexion WordPress
-                  </CardTitle>
-                  <CardDescription>
+          {/* Bandeau d'activation — bien visible */}
+          <Card className={cn('transition-all', watch('login_enabled') && 'ring-2 ring-primary/50 bg-primary/[0.03]')}>
+            <CardContent className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={cn(
+                  'size-11 rounded-2xl flex items-center justify-center shrink-0 transition-colors',
+                  watch('login_enabled') ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                )}>
+                  <IconLogin2 size={22} />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-bold text-sm flex items-center gap-2 flex-wrap">
+                    Page de connexion personnalisée
+                    <Badge variant={watch('login_enabled') ? 'default' : 'secondary'}>
+                      {watch('login_enabled') ? 'Activée' : 'Désactivée'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
                     Habille <code className="text-[11px] font-mono bg-muted px-1 py-0.5 rounded">wp-login.php</code> en deux colonnes :
                     logo + formulaire à gauche, image de couverture à droite.
-                  </CardDescription>
+                  </p>
                 </div>
-                <Controller
-                  control={control}
-                  name="login_enabled"
-                  render={({ field }) => (
+              </div>
+              <Controller
+                control={control}
+                name="login_enabled"
+                render={({ field }) => (
+                  <label className="flex items-center gap-2.5 cursor-pointer shrink-0 py-1 pl-3 pr-1">
+                    <span className="text-sm font-medium text-foreground">
+                      {field.value ? 'Activé' : 'Activer'}
+                    </span>
                     <Switch
                       checked={!!field.value}
                       onCheckedChange={field.onChange}
-                      aria-label="Activer la personnalisation"
+                      className="scale-125"
+                      aria-label="Activer la personnalisation de la page de connexion"
                     />
-                  )}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <input type="hidden" {...register('login_cover_id', { valueAsNumber: true })} />
+                  </label>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-              <div className={watch('login_enabled') ? 'space-y-5' : 'space-y-5 opacity-50 pointer-events-none select-none'}>
-                {/* Aperçu maquette 2 colonnes */}
-                <div className="rounded-2xl overflow-hidden ring-1 ring-foreground/10 grid grid-cols-2 aspect-[16/7] bg-background">
-                  <div className="relative bg-background p-4 flex flex-col items-center justify-center gap-3">
-                    <div className="size-12 rounded-xl bg-muted/40 ring-1 ring-border flex items-center justify-center overflow-hidden">
-                      {logoUrl ? (
-                        <img src={logoUrl} alt="" className="max-w-full max-h-full object-contain" />
-                      ) : (
-                        <IconPhoto className="size-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="w-full max-w-[160px] space-y-1.5">
-                      <div className="h-2 rounded-full bg-muted/70" />
-                      <div className="h-6 rounded-lg bg-muted/40" />
-                      <div className="h-2 rounded-full bg-muted/70 mt-3" />
-                      <div className="h-6 rounded-lg bg-muted/40" />
-                      <div className="h-6 mt-2 rounded-lg bg-primary/80" />
-                    </div>
-                  </div>
-                  <div
-                    className="relative bg-gradient-to-br from-slate-200 via-slate-100 to-slate-50"
-                    style={loginCoverUrl ? { backgroundImage: `url(${loginCoverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-                  >
-                    {!loginCoverUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
-                        Image de couverture
+          {/* Sidebar réglages (gauche) + aperçu (droite) */}
+          <Card>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+                <aside className="space-y-6 lg:border-r lg:border-border/60 lg:pr-6">
+                  {/* Logo société — global (header, emails, shortcode) */}
+                  <section className="space-y-2">
+                    <Label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <IconPhoto size={13} />
+                      Logo société
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <div className="size-16 rounded-2xl border border-border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                        ) : (
+                          <IconPhoto className="size-6 text-muted-foreground" />
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/30 p-3">
-                  <Controller
-                    control={control}
-                    name="login_show_logo"
-                    render={({ field }) => (
-                      <Switch
-                        checked={!!field.value}
-                        onCheckedChange={field.onChange}
-                        className="mt-0.5"
-                        aria-label="Afficher le logo société"
-                      />
-                    )}
-                  />
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Afficher le logo société</Label>
+                      <div className="flex flex-col gap-1.5">
+                        <Button type="button" variant="outline" size="sm" onClick={handleSelectLogo}>
+                          <IconPhoto className="size-3.5" />
+                          {logoUrl ? 'Changer' : 'Sélectionner'}
+                        </Button>
+                        {logoUrl && (
+                          <Button type="button" variant="ghost" size="sm" onClick={handleClearLogo}>
+                            <IconTrash className="size-3.5" />
+                            Retirer
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Remplace le logo WordPress par celui de ta société sur la page de connexion.
+                      Aussi utilisé dans les en-têtes, emails et le shortcode{' '}
+                      <code className="font-mono bg-muted px-1 py-0.5 rounded">[company_logo]</code>
+                    </p>
+                  </section>
+
+                  {/* Réglages spécifiques à la page de connexion */}
+                  <div className={cn('space-y-6', !watch('login_enabled') && 'opacity-50 pointer-events-none select-none')}>
+                    <section className="flex items-start gap-3 rounded-2xl border border-border bg-muted/30 p-3">
+                      <Controller
+                        control={control}
+                        name="login_show_logo"
+                        render={({ field }) => (
+                          <Switch
+                            checked={!!field.value}
+                            onCheckedChange={field.onChange}
+                            className="mt-0.5"
+                            aria-label="Afficher le logo société"
+                          />
+                        )}
+                      />
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium">Afficher le logo</Label>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Remplace le logo WordPress sur la page de connexion.
+                        </p>
+                      </div>
+                    </section>
+
+                    <section className="space-y-2">
+                      <Label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        <IconRuler2 size={13} />
+                        Taille du logo
+                      </Label>
+                      <FigmaSlider
+                        value={Number(watch('login_logo_size') ?? 64)}
+                        onChange={v => setValue('login_logo_size', v, { shouldDirty: true })}
+                        min={32}
+                        max={160}
+                        presets={[32, 48, 64, 96, 128, 160]}
+                      />
+                    </section>
+
+                    <section className="space-y-2">
+                      <Label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        <IconPhoto size={13} />
+                        Image de couverture
+                      </Label>
+                      <div className="h-24 rounded-2xl border border-border bg-muted/40 overflow-hidden">
+                        {loginCoverUrl ? (
+                          <img src={loginCoverUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <IconPhoto className="size-7 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Button type="button" variant="outline" size="sm" onClick={handleSelectLoginCover}>
+                          <IconPhoto className="size-3.5" />
+                          {loginCoverUrl ? 'Changer' : 'Choisir'}
+                        </Button>
+                        {loginCoverUrl && (
+                          <Button type="button" variant="ghost" size="sm" onClick={handleClearLoginCover}>
+                            <IconTrash className="size-3.5" />
+                            Retirer
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Paysage haute résolution recommandé (≥ 1600 × 1200 px).
+                      </p>
+                    </section>
+
+                    <section className="space-y-3">
+                      <Label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        <IconDroplet size={13} />
+                        Bouton de connexion
+                      </Label>
+                      <ColorAutoField
+                        label="Couleur du bouton"
+                        fallback="#2271B1"
+                        value={watch('login_button_bg_color') ?? ''}
+                        onChange={v => setValue('login_button_bg_color', v, { shouldDirty: true })}
+                      />
+                      <ColorAutoField
+                        label="Couleur du texte"
+                        fallback="#FFFFFF"
+                        value={watch('login_button_text_color') ?? ''}
+                        onChange={v => setValue('login_button_text_color', v, { shouldDirty: true })}
+                      />
+                    </section>
+                  </div>
+                </aside>
+
+                {/* ── Aperçu (droite) ── */}
+                <div className={cn(!watch('login_enabled') && 'opacity-50 select-none')}>
+                  <div className="lg:sticky lg:top-4 space-y-2">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      Aperçu
+                    </Label>
+                    <div className="rounded-2xl overflow-hidden ring-1 ring-foreground/10 grid grid-cols-2 aspect-[16/9] bg-background">
+                      <div className="relative bg-background p-4 flex flex-col items-center justify-center gap-3">
+                        {watch('login_show_logo') !== false && (
+                          <div
+                            className="flex items-center justify-center overflow-hidden transition-all"
+                            style={{ height: Math.round(Number(watch('login_logo_size') ?? 64) * 0.75) }}
+                          >
+                            {logoUrl ? (
+                              <img src={logoUrl} alt="" className="max-w-[180px] max-h-full object-contain" />
+                            ) : (
+                              <div className="h-full aspect-square rounded-xl bg-muted/40 ring-1 ring-border flex items-center justify-center">
+                                <IconPhoto className="size-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="w-full max-w-[200px] space-y-1.5">
+                          <div className="h-2 rounded-full bg-muted/70" />
+                          <div className="h-7 rounded-lg bg-muted/40 ring-1 ring-border/60" />
+                          <div className="h-2 rounded-full bg-muted/70 mt-3" />
+                          <div className="h-7 rounded-lg bg-muted/40 ring-1 ring-border/60" />
+                          <div
+                            className={cn(
+                              'h-8 mt-3 rounded-full flex items-center justify-center text-[11px] font-semibold transition-colors',
+                              !watch('login_button_bg_color') && 'bg-primary/85 text-primary-foreground'
+                            )}
+                            style={{
+                              backgroundColor: watch('login_button_bg_color') || undefined,
+                              color: watch('login_button_text_color') || undefined,
+                            }}
+                          >
+                            Se connecter
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="relative bg-gradient-to-br from-slate-200 via-slate-100 to-slate-50"
+                        style={loginCoverUrl ? { backgroundImage: `url(${loginCoverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                      >
+                        {!loginCoverUrl && (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
+                            Image de couverture
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Rendu indicatif de <code className="font-mono bg-muted px-1 py-0.5 rounded">wp-login.php</code> — la taille du logo et les couleurs du bouton sont appliquées en temps réel.
                     </p>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground">Image de couverture (colonne de droite)</Label>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <div className="h-24 w-40 rounded-2xl border border-border bg-muted/40 overflow-hidden shrink-0">
-                      {loginCoverUrl ? (
-                        <img src={loginCoverUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <IconPhoto className="size-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" onClick={handleSelectLoginCover}>
-                        <IconPhoto className="size-4" />
-                        {loginCoverUrl ? 'Changer' : 'Choisir une image'}
-                      </Button>
-                      {loginCoverUrl && (
-                        <Button type="button" variant="ghost" onClick={handleClearLoginCover}>
-                          <IconTrash className="size-4" />
-                          Retirer
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Format recommandé : paysage haute résolution (≥ 1600 × 1200 px). L'image est centrée et recadrée selon la hauteur de l'écran.
-                  </p>
                 </div>
               </div>
             </CardContent>
@@ -585,6 +663,61 @@ export function CompanyInfoSettings() {
         </TabsContent>
       </Tabs>
     </form>
+  )
+}
+
+/**
+ * Champ couleur avec mode « Auto » : valeur vide = couleur WordPress
+ * par défaut, le bouton Restore revient à ce mode.
+ */
+function ColorAutoField({
+  label,
+  fallback,
+  value,
+  onChange,
+}: {
+  label: string
+  fallback: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  const isAuto = value === ''
+  const isValid = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value)
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {label}
+        {isAuto && <span className="text-[10px] uppercase tracking-wide bg-muted px-1.5 py-0.5 rounded-md">Auto</span>}
+      </Label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={isValid ? value : fallback}
+          onChange={e => onChange(e.target.value)}
+          className="h-9 w-12 rounded border border-input cursor-pointer p-0.5 bg-background shrink-0"
+          aria-label={label}
+        />
+        <Input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={`Auto (${fallback})`}
+          className="font-mono text-sm flex-1"
+        />
+        {!isAuto && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onChange('')}
+            title="Revenir à la couleur par défaut"
+            className="shrink-0 px-2"
+          >
+            <IconRestore size={14} />
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }
 

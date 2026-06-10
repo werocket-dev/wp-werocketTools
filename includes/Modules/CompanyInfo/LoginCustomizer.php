@@ -74,6 +74,14 @@ class LoginCustomizer {
         $cover_url   = $settings['login_cover_url'] ?? '';
         $show_logo   = !empty($settings['login_show_logo']) && $logo_url !== '';
         $has_cover   = $cover_url !== '';
+        $logo_size   = max(32, min(160, (int) ($settings['login_logo_size'] ?? 64)));
+        $btn_bg      = (string) ($settings['login_button_bg_color']   ?? '');
+        $btn_text    = (string) ($settings['login_button_text_color'] ?? '');
+
+        // #abc → #aabbcc pour pouvoir suffixer l'alpha hex de l'ombre
+        if (strlen($btn_bg) === 4) {
+            $btn_bg = '#' . $btn_bg[1] . $btn_bg[1] . $btn_bg[2] . $btn_bg[2] . $btn_bg[3] . $btn_bg[3];
+        }
         ?>
 <style id="werocket-login-custom">
 /* ─── Layout 2 colonnes : on transforme le <body class="login"> en grid ─── */
@@ -113,7 +121,7 @@ body.wr-login-custom #login h1 a {
     background-position: center center !important;
     background-repeat: no-repeat !important;
     width: 100% !important;
-    height: 64px !important;
+    height: <?php echo $logo_size; ?>px !important;
     margin: 0 auto 1.5rem !important;
     text-indent: -9999px;
 }
@@ -146,8 +154,22 @@ body.wr-login-custom .wp-core-ui .button-primary {
     letter-spacing: 0.01em;
     border: 0;
     text-shadow: none;
-    box-shadow: 0 4px 12px -4px rgba(5, 150, 105, 0.4);
+    box-shadow: 0 4px 12px -4px <?php echo $btn_bg !== '' ? esc_html($btn_bg) . '66' : 'rgba(5, 150, 105, 0.4)'; ?>;
+<?php if ($btn_bg !== ''): ?>
+    background: <?php echo esc_html($btn_bg); ?> !important;
+<?php endif; ?>
+<?php if ($btn_text !== ''): ?>
+    color: <?php echo esc_html($btn_text); ?> !important;
+<?php endif; ?>
 }
+
+<?php if ($btn_bg !== ''): ?>
+body.wr-login-custom .wp-core-ui .button-primary:hover,
+body.wr-login-custom .wp-core-ui .button-primary:focus {
+    background: <?php echo esc_html($btn_bg); ?> !important;
+    filter: brightness(0.92);
+}
+<?php endif; ?>
 
 body.wr-login-custom .login #nav,
 body.wr-login-custom .login #backtoblog {
