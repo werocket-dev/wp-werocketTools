@@ -7,12 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   IconKey, IconEye, IconEyeOff, IconLoader2, IconExternalLink, IconRefresh,
   IconCircleCheck, IconAlertTriangle, IconClock, IconClipboard, IconCheck,
-  IconTemplate, IconLayoutGrid, IconPalette,
+  IconTemplate, IconLayoutGrid, IconPalette, IconStar,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -20,6 +19,7 @@ import { useRegisterSaveForm } from '../context/SaveContext'
 import { ReviewsPreview } from '../components/ReviewsPreview'
 import { LayoutBuilder } from '../components/layout-builder/LayoutBuilder'
 import { CustomizationPanel } from '../components/reviews/CustomizationPanel'
+import { BadgePanel } from '../components/reviews/BadgePanel'
 
 const FORM_ID = 'wr-form-reviews'
 import { TEMPLATE_META } from '@/frontend/reviews/templates'
@@ -179,8 +179,11 @@ export function ReviewsSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-bold">Apparence</CardTitle>
-          <CardDescription>Template, disposition et personnalisation des avis</CardDescription>
+          <CardTitle className="flex items-center gap-3 font-bold"><div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><IconPalette size={16} /></div> Apparence & aperçu</CardTitle>
+          <CardDescription>Template, disposition, personnalisation et rendu en temps réel</CardDescription>
+          <CardAction>
+            <ShortcodeClipboard code="[werocket_reviews]" />
+          </CardAction>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="template">
@@ -233,35 +236,32 @@ export function ReviewsSettings() {
               <CustomizationPanel watch={watch} setValue={setValue} />
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-bold"><div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><IconEye size={16} /></div> Aperçu</CardTitle>
-          <CardDescription>Rendu en temps réel avec vos avis synchronisés</CardDescription>
-          <CardAction>
-            <ShortcodeClipboard code="[werocket_reviews]" />
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-2xl bg-muted/40 p-4 sm:p-6">
-            <ReviewsPreview watch={watch} refreshKey={previewRefreshKey} />
+          {/* ── Sous-section Aperçu, visuellement séparée ── */}
+          <div className="mt-6 pt-5 border-t border-border/60 space-y-3">
+            <div className="flex items-center gap-2">
+              <IconEye size={14} className="text-muted-foreground" />
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Aperçu en temps réel
+              </span>
+            </div>
+            <div className="rounded-2xl bg-muted/40 p-4 sm:p-6">
+              <ReviewsPreview watch={watch} refreshKey={previewRefreshKey} />
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-bold">CSS personnalisé</CardTitle>
+          <CardTitle className="flex items-center gap-3 font-bold"><div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><IconStar size={16} /></div> Badge note Google</CardTitle>
+          <CardDescription>Logo Google, note, étoiles et nombre d'avis — idéal pour un header ou un footer</CardDescription>
+          <CardAction>
+            <ShortcodeClipboard code="[werocket_reviews_badge]" />
+          </CardAction>
         </CardHeader>
         <CardContent>
-          <Textarea
-            {...register('custom_css')}
-            rows={6}
-            className="font-mono text-xs"
-            placeholder=".werocket-review { ... }"
-          />
+          <BadgePanel watch={watch} setValue={setValue} refreshKey={previewRefreshKey} />
         </CardContent>
       </Card>
 

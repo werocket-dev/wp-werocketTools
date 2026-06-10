@@ -30,6 +30,13 @@ export interface Review {
   time: number
 }
 
+/** Note globale + total d'avis du lieu (option meta côté serveur) */
+export interface ReviewsMeta {
+  rating: number
+  total: number
+  updated?: number
+}
+
 export type ReviewTemplate = 'minimal' | 'classic' | 'card' | 'quote' | 'google'
 export type Breakpoint = 'desktop' | 'tablet' | 'mobile'
 export type ResponsiveValue<T> = { desktop: T; tablet: T; mobile: T }
@@ -64,6 +71,17 @@ export interface ReviewsSettings {
   star_color: string
   avatar_size: number
   show_google_badge: boolean
+
+  // Badge note Google ([werocket_reviews_badge])
+  badge_show_logo: boolean
+  badge_show_rating: boolean
+  badge_show_stars: boolean
+  badge_show_count: boolean
+  /** false = transparent : sans fond, bordure ni padding */
+  badge_card: boolean
+  badge_rating_color: string
+  badge_star_color: string
+  badge_count_color: string
 
   // Carrousel
   carousel_autoplay: boolean

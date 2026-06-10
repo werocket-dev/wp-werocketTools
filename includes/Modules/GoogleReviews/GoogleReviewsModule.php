@@ -12,6 +12,7 @@ class GoogleReviewsModule extends AbstractModule {
 
     public const CRON_HOOK = 'werocket_google_reviews_weekly_sync';
     public const LAST_SYNC_OPTION = 'werocket_google_reviews_last_sync';
+    public const META_OPTION = 'werocket_google_reviews_meta';
 
     protected string $id = 'google_reviews';
     protected string $name = 'Avis Google';
@@ -21,6 +22,7 @@ class GoogleReviewsModule extends AbstractModule {
 
     public function init(): void {
         add_shortcode('werocket_reviews', [$this, 'render_shortcode']);
+        add_shortcode('werocket_reviews_badge', [$this, 'render_badge_shortcode']);
 
         // Cron hook callback (toujours enregistré pour que WP-Cron puisse l'appeler)
         add_action(self::CRON_HOOK, [$this, 'force_refresh']);
@@ -79,6 +81,16 @@ class GoogleReviewsModule extends AbstractModule {
             'star_color' => '',
             'avatar_size' => 40,
             'show_google_badge' => true,
+
+            // Badge note Google ([werocket_reviews_badge])
+            'badge_show_logo' => true,
+            'badge_show_rating' => true,
+            'badge_show_stars' => true,
+            'badge_show_count' => true,
+            'badge_card' => true,  // false = transparent : sans fond, bordure ni padding
+            'badge_rating_color' => '',
+            'badge_star_color' => '',
+            'badge_count_color' => '',
 
             'carousel_autoplay' => false,
             'carousel_autoplay_speed' => 5,
@@ -157,7 +169,8 @@ class GoogleReviewsModule extends AbstractModule {
             'show_date' => !empty($data['show_date']),
             'show_avatar' => !empty($data['show_avatar']),
             'cache_duration' => absint($data['cache_duration'] ?? 3600),
-            'custom_css' => sanitize_textarea_field($data['custom_css'] ?? ''),
+            // Plus d'UI pour custom_css : on préserve l'existant si absent du payload
+            'custom_css' => sanitize_textarea_field($data['custom_css'] ?? ($this->get_settings()['custom_css'] ?? '')),
 
             'grid_columns'    => $this->sanitize_responsive($data['grid_columns']    ?? null, 1, 4,  ['desktop' => 3,  'tablet' => 2,  'mobile' => 1]),
             'grid_gap'        => $this->sanitize_responsive($data['grid_gap']        ?? null, 0, 48, ['desktop' => 16, 'tablet' => 12, 'mobile' => 8]),
@@ -172,6 +185,15 @@ class GoogleReviewsModule extends AbstractModule {
             'star_color' => $sanitize_color($data['star_color'] ?? ''),
             'avatar_size' => $avatar_size,
             'show_google_badge' => !empty($data['show_google_badge']),
+
+            'badge_show_logo' => !empty($data['badge_show_logo']),
+            'badge_show_rating' => !empty($data['badge_show_rating']),
+            'badge_show_stars' => !empty($data['badge_show_stars']),
+            'badge_show_count' => !empty($data['badge_show_count']),
+            'badge_card' => !empty($data['badge_card']),
+            'badge_rating_color' => $sanitize_color($data['badge_rating_color'] ?? ''),
+            'badge_star_color' => $sanitize_color($data['badge_star_color'] ?? ''),
+            'badge_count_color' => $sanitize_color($data['badge_count_color'] ?? ''),
 
             'carousel_autoplay' => !empty($data['carousel_autoplay']),
             'carousel_autoplay_speed' => $autoplay_speed,
@@ -208,6 +230,45 @@ class GoogleReviewsModule extends AbstractModule {
             esc_attr($atts['style']),
             esc_attr($template)
         );
+    }
+
+    /**
+     * [werocket_reviews_badge] — logo Google + note + étoiles + nombre d'avis.
+     * Chaque élément est désactivable par attribut : logo, note, etoiles, avis
+     * (valeurs "true"/"false"). Sans attribut, le réglage admin s'applique.
+     * Ex : [werocket_reviews_badge logo="false" avis="false"]
+     */
+    public function render_badge_shortcode(array $atts = []): string {
+        $atts = shortcode_atts([
+            'logo'    => '',
+            'note'    => '',
+            'etoiles' => '',
+            'avis'    => '',
+            'carte'   => '',
+        ], $atts);
+
+        // '' = défaut réglages, sinon "1"/"0" tranché côté widget React
+        $tri = static function (string $value): string {
+            if ($value === '') {
+                return '';
+            }
+            return in_array(strtolower($value), ['false', '0', 'no', 'non', 'off'], true) ? '0' : '1';
+        };
+
+        return sprintf(
+            '<div class="werocket-badge-mount" data-logo="%s" data-note="%s" data-etoiles="%s" data-avis="%s" data-carte="%s"></div>',
+            esc_attr($tri($atts['logo'])),
+            esc_attr($tri($atts['note'])),
+            esc_attr($tri($atts['etoiles'])),
+            esc_attr($tri($atts['avis'])),
+            esc_attr($tri($atts['carte']))
+        );
+    }
+
+    /** Note globale + nombre total d'avis (mis à jour à chaque appel API réussi). */
+    public function get_meta(): ?array {
+        $meta = get_option(self::META_OPTION, null);
+        return is_array($meta) && isset($meta['rating']) ? $meta : null;
     }
 
     public function fetch_reviews(): array {
@@ -286,7 +347,7 @@ class GoogleReviewsModule extends AbstractModule {
     private function call_google_api(array $settings) {
         $url = add_query_arg([
             'place_id' => $settings['google_place_id'],
-            'fields' => 'reviews',
+            'fields' => 'reviews,rating,user_ratings_total',
             'language' => substr(get_locale(), 0, 2) ?: 'fr',
             'key' => $settings['google_api_key'],
         ], 'https://maps.googleapis.com/maps/api/place/details/json');
@@ -334,6 +395,15 @@ class GoogleReviewsModule extends AbstractModule {
             }
 
             return new \WP_Error('google_api_' . strtolower($status), $message);
+        }
+
+        // Note globale + total d'avis pour le badge [werocket_reviews_badge]
+        if (isset($body['result']['rating'])) {
+            update_option(self::META_OPTION, [
+                'rating'  => round((float) $body['result']['rating'], 1),
+                'total'   => (int) ($body['result']['user_ratings_total'] ?? 0),
+                'updated' => time(),
+            ]);
         }
 
         return $body['result']['reviews'] ?? [];

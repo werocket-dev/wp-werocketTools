@@ -237,13 +237,18 @@ class RestApi {
         $module = $this->module_manager->get_module('google_reviews');
 
         if (!$module || !$this->module_manager->is_module_active('google_reviews')) {
-            return rest_ensure_response(['reviews' => [], 'settings' => []]);
+            return rest_ensure_response(['reviews' => [], 'settings' => [], 'meta' => null]);
         }
 
         /** @var \WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule $module */
+        $settings = $module->get_settings();
+        // Endpoint public : ne jamais exposer la clé API
+        unset($settings['google_api_key']);
+
         return rest_ensure_response([
             'reviews'  => $module->fetch_reviews(),
-            'settings' => $module->get_settings(),
+            'settings' => $settings,
+            'meta'     => $module->get_meta(),
         ]);
     }
 

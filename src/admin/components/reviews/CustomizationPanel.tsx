@@ -86,8 +86,9 @@ export function CustomizationPanel({ watch, setValue }: Props) {
 /**
  * Champ couleur avec mode « Auto » : valeur vide = couleur par défaut
  * du template, le bouton Restore revient à ce mode.
+ * Exporté pour réutilisation (panneau Badge note Google).
  */
-function ColorField({
+export function ColorField({
   label,
   icon,
   fallback,
