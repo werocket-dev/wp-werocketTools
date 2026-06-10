@@ -225,10 +225,23 @@ class GoogleReviewsModule extends AbstractModule {
         $template = in_array($atts['template'], self::TEMPLATES, true) ? $atts['template'] : 'classic';
 
         return sprintf(
-            '<div class="werocket-reviews-mount" data-count="%d" data-style="%s" data-template="%s"></div>',
+            '<div class="werocket-reviews-mount" data-count="%d" data-style="%s" data-template="%s">%s</div>',
             absint($atts['count']),
             esc_attr($atts['style']),
-            esc_attr($template)
+            esc_attr($template),
+            $this->mount_placeholder(__('Avis Google', 'werocket-tools'))
+        );
+    }
+
+    /**
+     * Contenu de secours affiché dans la div de montage tant que le widget
+     * React n'a pas pris la main (builder sans nos scripts, JS bloqué…).
+     * React remplace ce contenu au mount — invisible en usage normal.
+     */
+    private function mount_placeholder(string $label): string {
+        return sprintf(
+            '<div style="padding:20px;border:1px dashed #D0D5DD;border-radius:12px;color:#98A2B3;font:500 13px/1.4 system-ui,-apple-system,sans-serif;text-align:center;">%s</div>',
+            esc_html($label)
         );
     }
 
@@ -256,12 +269,13 @@ class GoogleReviewsModule extends AbstractModule {
         };
 
         return sprintf(
-            '<div class="werocket-badge-mount" data-logo="%s" data-note="%s" data-etoiles="%s" data-avis="%s" data-carte="%s"></div>',
+            '<div class="werocket-badge-mount" data-logo="%s" data-note="%s" data-etoiles="%s" data-avis="%s" data-carte="%s">%s</div>',
             esc_attr($tri($atts['logo'])),
             esc_attr($tri($atts['note'])),
             esc_attr($tri($atts['etoiles'])),
             esc_attr($tri($atts['avis'])),
-            esc_attr($tri($atts['carte']))
+            esc_attr($tri($atts['carte'])),
+            $this->mount_placeholder(__('Badge note Google', 'werocket-tools'))
         );
     }
 
