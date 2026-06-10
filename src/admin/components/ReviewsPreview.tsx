@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
 import type { UseFormWatch } from 'react-hook-form'
+import { IconInfoCircle } from '@tabler/icons-react'
 import { TEMPLATES } from '@/frontend/reviews/templates'
 import { ReviewsLayout } from '@/frontend/reviews/layout'
+import { api } from '@/lib/api'
 import type { Review, ReviewsSettings, ReviewTemplate, ResponsiveValue, CardShadow } from '@/lib/types'
 
 const MOCK_REVIEWS: Review[] = [
@@ -51,9 +54,19 @@ const DEFAULT_PADDING: ResponsiveValue<number> = { desktop: 24, tablet: 20, mobi
 
 interface Props {
   watch: UseFormWatch<ReviewsSettings>
+  /** Incrémenté après une synchro réussie pour recharger les vrais avis */
+  refreshKey?: number
 }
 
-export function ReviewsPreview({ watch }: Props) {
+export function ReviewsPreview({ watch, refreshKey = 0 }: Props) {
+  const [realReviews, setRealReviews] = useState<Review[]>([])
+
+  useEffect(() => {
+    api.get<{ reviews: Review[] }>('/reviews')
+      .then(data => setRealReviews(Array.isArray(data.reviews) ? data.reviews : []))
+      .catch(() => setRealReviews([]))
+  }, [refreshKey])
+
   const template = (watch('template') as ReviewTemplate) || 'classic'
   const displayStyle = watch('display_style') || 'grid'
   const minRating = Number(watch('min_rating') ?? 4)
@@ -76,6 +89,12 @@ export function ReviewsPreview({ watch }: Props) {
     card_radius: Number(watch('card_radius') ?? 12),
     card_shadow: (watch('card_shadow') as CardShadow) ?? 'subtle',
 
+    card_bg_color: watch('card_bg_color') ?? '',
+    text_color: watch('text_color') ?? '',
+    star_color: watch('star_color') ?? '',
+    avatar_size: Number(watch('avatar_size') ?? 40),
+    show_google_badge: watch('show_google_badge') !== false,
+
     carousel_autoplay: !!watch('carousel_autoplay'),
     carousel_autoplay_speed: Number(watch('carousel_autoplay_speed') ?? 5),
     carousel_loop: watch('carousel_loop') !== false,
@@ -83,14 +102,17 @@ export function ReviewsPreview({ watch }: Props) {
     carousel_show_dots: watch('carousel_show_dots') !== false,
   }
 
-  const reviews = MOCK_REVIEWS
+  const usingRealData = realReviews.length > 0
+  const source = usingRealData ? realReviews : MOCK_REVIEWS
+
+  const reviews = source
     .filter(r => r.rating >= minRating)
     .slice(0, count)
 
   if (!reviews.length) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
-        Aucun avis fictif ne correspond à la note minimale ({minRating}★).
+        Aucun avis ne correspond à la note minimale ({minRating}★).
       </p>
     )
   }
@@ -98,10 +120,18 @@ export function ReviewsPreview({ watch }: Props) {
   const Template = TEMPLATES[template] ?? TEMPLATES.classic
 
   return (
-    <ReviewsLayout settings={settings}>
-      {reviews.map((review, i) => (
-        <Template key={i} review={review} settings={settings} />
-      ))}
-    </ReviewsLayout>
+    <div className="space-y-3">
+      {!usingRealData && (
+        <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <IconInfoCircle size={13} />
+          Avis fictifs — synchronisez votre Place ID pour afficher vos vrais avis Google.
+        </p>
+      )}
+      <ReviewsLayout settings={settings}>
+        {reviews.map((review, i) => (
+          <Template key={i} review={review} settings={settings} />
+        ))}
+      </ReviewsLayout>
+    </div>
   )
 }

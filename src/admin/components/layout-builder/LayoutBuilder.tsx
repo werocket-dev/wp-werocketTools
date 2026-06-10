@@ -1,5 +1,4 @@
 import type { UseFormWatch, UseFormSetValue, UseFormRegister } from 'react-hook-form'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -46,13 +45,7 @@ export function LayoutBuilder({ watch, setValue, register }: Props) {
   const isMinimal = template === 'minimal'
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-bold">Disposition</CardTitle>
-        <CardDescription>Personnalisation complète par device — comme dans Webflow</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
           {/* ── Layouts (colonne gauche) ── */}
           <div className="space-y-2">
             <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -213,10 +206,8 @@ export function LayoutBuilder({ watch, setValue, register }: Props) {
                 <CarouselToggles watch={watch} setValue={setValue} register={register} />
               </div>
             )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 

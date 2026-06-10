@@ -70,6 +70,13 @@ class GoogleReviewsModule extends AbstractModule {
             'card_radius' => 12,
             'card_shadow' => 'subtle',
 
+            // Personnalisation ('' = couleur par défaut du template)
+            'card_bg_color' => '',
+            'text_color' => '',
+            'star_color' => '',
+            'avatar_size' => 40,
+            'show_google_badge' => true,
+
             'carousel_autoplay' => false,
             'carousel_autoplay_speed' => 5,
             'carousel_loop' => true,
@@ -118,6 +125,18 @@ class GoogleReviewsModule extends AbstractModule {
         $card_radius = (int) ($data['card_radius'] ?? 12);
         $card_radius = max(0, min(32, $card_radius));
 
+        $avatar_size = (int) ($data['avatar_size'] ?? 40);
+        $avatar_size = max(24, min(72, $avatar_size));
+
+        // '' = couleur auto (défaut du template), sinon hex valide obligatoire
+        $sanitize_color = static function ($value): string {
+            $value = trim((string) $value);
+            if ($value === '') {
+                return '';
+            }
+            return sanitize_hex_color($value) ?: '';
+        };
+
         return [
             'google_place_id' => sanitize_text_field($data['google_place_id'] ?? ''),
             'google_api_key' => sanitize_text_field($data['google_api_key'] ?? ''),
@@ -138,6 +157,12 @@ class GoogleReviewsModule extends AbstractModule {
 
             'card_radius' => $card_radius,
             'card_shadow' => $shadow,
+
+            'card_bg_color' => $sanitize_color($data['card_bg_color'] ?? ''),
+            'text_color' => $sanitize_color($data['text_color'] ?? ''),
+            'star_color' => $sanitize_color($data['star_color'] ?? ''),
+            'avatar_size' => $avatar_size,
+            'show_google_badge' => !empty($data['show_google_badge']),
 
             'carousel_autoplay' => !empty($data['carousel_autoplay']),
             'carousel_autoplay_speed' => $autoplay_speed,
@@ -188,7 +213,8 @@ class GoogleReviewsModule extends AbstractModule {
         $reviews = [];
 
         if (!empty($settings['google_place_id']) && !empty($settings['google_api_key'])) {
-            $reviews = $this->call_google_api($settings);
+            $result = $this->call_google_api($settings);
+            $reviews = is_wp_error($result) ? [] : $result;
         }
 
         if (!empty($reviews)) {
@@ -219,15 +245,14 @@ class GoogleReviewsModule extends AbstractModule {
 
         $reviews = $this->call_google_api($settings);
 
-        $now = time();
         $result = [
-            'success'   => is_array($reviews),
-            'count'     => is_array($reviews) ? count($reviews) : 0,
-            'timestamp' => $now,
-            'error'     => null,
+            'success'   => !is_wp_error($reviews),
+            'count'     => is_wp_error($reviews) ? 0 : count($reviews),
+            'timestamp' => time(),
+            'error'     => is_wp_error($reviews) ? $reviews->get_error_message() : null,
         ];
 
-        if (is_array($reviews) && !empty($reviews)) {
+        if (!is_wp_error($reviews) && !empty($reviews)) {
             set_transient($cache_key, $reviews, (int) ($settings['cache_duration'] ?? 3600));
         }
 
@@ -245,20 +270,62 @@ class GoogleReviewsModule extends AbstractModule {
         return 'werocket_google_reviews_' . md5($settings['google_place_id'] ?? '');
     }
 
-    private function call_google_api(array $settings): array {
+    /**
+     * @return array|\WP_Error Liste d'avis, ou WP_Error détaillant l'échec
+     *                         (réseau, HTTP, ou status Google ≠ OK).
+     */
+    private function call_google_api(array $settings) {
         $url = add_query_arg([
             'place_id' => $settings['google_place_id'],
             'fields' => 'reviews',
+            'language' => substr(get_locale(), 0, 2) ?: 'fr',
             'key' => $settings['google_api_key'],
         ], 'https://maps.googleapis.com/maps/api/place/details/json');
 
-        $response = wp_remote_get($url);
+        $response = wp_remote_get($url, ['timeout' => 15]);
 
         if (is_wp_error($response)) {
-            return [];
+            return new \WP_Error('http_error', sprintf(
+                /* translators: %s: error message */
+                __('Impossible de contacter l\'API Google : %s', 'werocket-tools'),
+                $response->get_error_message()
+            ));
         }
 
+        $code = wp_remote_retrieve_response_code($response);
         $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if ($code !== 200 || !is_array($body)) {
+            return new \WP_Error('http_error', sprintf(
+                /* translators: %d: HTTP status code */
+                __('Réponse inattendue de l\'API Google (HTTP %d).', 'werocket-tools'),
+                (int) $code
+            ));
+        }
+
+        $status = $body['status'] ?? 'UNKNOWN';
+
+        if ($status !== 'OK') {
+            $hints = [
+                'REQUEST_DENIED'   => __('Requête refusée : vérifiez que l\'API « Places API » est activée sur votre projet Google Cloud et que la clé n\'est pas restreinte par référent HTTP (les restrictions par site web bloquent les appels serveur — utilisez une restriction par adresse IP ou par API).', 'werocket-tools'),
+                'INVALID_REQUEST'  => __('Requête invalide : le Place ID semble mal formé.', 'werocket-tools'),
+                'NOT_FOUND'        => __('Place ID introuvable : vérifiez l\'identifiant de votre établissement.', 'werocket-tools'),
+                'OVER_QUERY_LIMIT' => __('Quota Google dépassé : vérifiez la facturation de votre projet Google Cloud.', 'werocket-tools'),
+                'ZERO_RESULTS'     => __('Aucun résultat pour ce Place ID.', 'werocket-tools'),
+            ];
+
+            $message = $hints[$status] ?? sprintf(
+                /* translators: %s: Google API status */
+                __('Erreur Google API : %s', 'werocket-tools'),
+                $status
+            );
+
+            if (!empty($body['error_message'])) {
+                $message .= ' — ' . sanitize_text_field($body['error_message']);
+            }
+
+            return new \WP_Error('google_api_' . strtolower($status), $message);
+        }
 
         return $body['result']['reviews'] ?? [];
     }

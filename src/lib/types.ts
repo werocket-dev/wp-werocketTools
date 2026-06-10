@@ -58,6 +58,13 @@ export interface ReviewsSettings {
   card_radius: number
   card_shadow: CardShadow
 
+  // Personnalisation ('' = couleur auto du template)
+  card_bg_color: string
+  text_color: string
+  star_color: string
+  avatar_size: number
+  show_google_badge: boolean
+
   // Carrousel
   carousel_autoplay: boolean
   carousel_autoplay_speed: number

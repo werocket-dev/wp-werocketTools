@@ -30,6 +30,7 @@ export function ReviewsWidget({ count, displayStyle, templateOverride }: Props) 
         setSettings(s)
         setReviews(all.filter(r => r.rating >= minRating).slice(0, count))
       })
+      .catch(() => setReviews([]))
       .finally(() => setLoading(false))
   }, [count])
 

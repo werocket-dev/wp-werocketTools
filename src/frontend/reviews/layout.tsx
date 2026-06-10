@@ -25,6 +25,16 @@ function buildResponsiveCSS(scope: string, settings: Partial<ReviewsSettings>): 
 
   const radius = typeof settings.card_radius === 'number' ? settings.card_radius : 12
   const shadow = SHADOW_MAP[settings.card_shadow ?? 'subtle']
+  const avatarSize = typeof settings.avatar_size === 'number' && settings.avatar_size > 0 ? settings.avatar_size : 40
+
+  /* Couleurs custom : '' = auto → la var n'est pas émise, les templates
+     retombent sur leur fallback var(--wr-*, défaut). */
+  const colorVars = [
+    settings.card_bg_color ? `--wr-card-bg: ${settings.card_bg_color};` : '',
+    settings.text_color ? `--wr-text: ${settings.text_color};` : '',
+    settings.text_color ? `--wr-text-muted: color-mix(in srgb, ${settings.text_color} 62%, transparent);` : '',
+    settings.star_color ? `--wr-star-color: ${settings.star_color};` : '',
+  ].filter(Boolean).join('\n  ')
 
   const block = (cols: number, gapPx: number, paddingPx: number, slidesN: number) => `
     --wr-cols: ${cols};
@@ -37,6 +47,8 @@ function buildResponsiveCSS(scope: string, settings: Partial<ReviewsSettings>): 
 ${scope} {
   --wr-card-radius: ${radius}px;
   --wr-card-shadow: ${shadow};
+  --wr-avatar-size: ${avatarSize}px;
+  ${colorVars}
   ${block(cols.mobile, gap.mobile, padding.mobile, slides.mobile)}
 }
 @media (min-width: ${TABLET_BP}px) {

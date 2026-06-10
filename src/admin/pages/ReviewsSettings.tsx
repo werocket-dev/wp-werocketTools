@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type UseFormRegister } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,15 +8,18 @@ import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  IconKey, IconEye, IconLoader2, IconExternalLink, IconRefresh,
+  IconKey, IconEye, IconEyeOff, IconLoader2, IconExternalLink, IconRefresh,
   IconCircleCheck, IconAlertTriangle, IconClock, IconClipboard, IconCheck,
+  IconTemplate, IconLayoutGrid, IconPalette,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import { ReviewsPreview } from '../components/ReviewsPreview'
 import { LayoutBuilder } from '../components/layout-builder/LayoutBuilder'
+import { CustomizationPanel } from '../components/reviews/CustomizationPanel'
 
 const FORM_ID = 'wr-form-reviews'
 import { TEMPLATE_META } from '@/frontend/reviews/templates'
@@ -58,7 +61,8 @@ export function ReviewsSettings() {
   const { setSaving } = useRegisterSaveForm(FORM_ID)
   const [syncing, setSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({ last_sync: null, next_sync_ts: null })
-  const { register, handleSubmit, setValue, watch, reset } = useForm<TReviewsSettings>()
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
+  const { register, handleSubmit, setValue, watch, reset, getValues } = useForm<TReviewsSettings>()
 
   useEffect(() => {
     api.get<{ settings: TReviewsSettings }>('/settings/google_reviews')
@@ -85,10 +89,16 @@ export function ReviewsSettings() {
   async function handleSync() {
     setSyncing(true)
     try {
+      // Sauvegarde d'abord les réglages courants : sinon force_refresh()
+      // lit l'ancien Place ID / clé API et échoue avec « champ manquant »
+      // alors que le formulaire est rempli.
+      await api.put('/settings/google_reviews', { settings: getValues() })
+
       const result = await api.post<SyncStatus>('/reviews/refresh', {})
       setSyncStatus(result)
       if (result.last_sync?.success) {
         toast.success(`Avis synchronisés (${result.last_sync.count} avis récupérés)`)
+        setPreviewRefreshKey(k => k + 1)
       } else {
         toast.error(result.last_sync?.error || 'Échec de la synchronisation')
       }
@@ -125,7 +135,7 @@ export function ReviewsSettings() {
               </div>
             </Field>
             <Field label="Clé API Google Places">
-              <Input {...register('google_api_key')} type="password" placeholder="AIza..." />
+              <SecretInput registration={register('google_api_key')} placeholder="AIza..." />
             </Field>
             <Field label="Durée du cache (secondes)">
               <Input {...register('cache_duration', { valueAsNumber: true })} type="number" min={60} />
@@ -169,49 +179,74 @@ export function ReviewsSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-bold">Template</CardTitle>
-          <CardDescription>Design de chaque carte d'avis</CardDescription>
+          <CardTitle className="font-bold">Apparence</CardTitle>
+          <CardDescription>Template, disposition et personnalisation des avis</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {(Object.entries(TEMPLATE_META) as [ReviewTemplate, typeof TEMPLATE_META[ReviewTemplate]][]).map(([key, meta]) => (
-              <button
-                type="button"
-                key={key}
-                onClick={() => setValue('template', key)}
-                className={cn(
-                  'flex flex-col items-stretch gap-2 p-2.5 rounded-2xl border-2 transition-all text-left',
-                  currentTemplate === key
-                    ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-border hover:border-foreground/30 bg-card'
-                )}
-              >
-                <div className="aspect-[4/3] rounded-lg bg-muted/60 flex items-center justify-center p-2 overflow-hidden">
-                  {meta.thumbnail}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-foreground">{meta.label}</div>
-                  <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{meta.description}</div>
-                </div>
-              </button>
-            ))}
-          </div>
+          <Tabs defaultValue="template">
+            <TabsList className="mb-5">
+              <TabsTrigger value="template" className="gap-1.5">
+                <IconTemplate size={14} />
+                Template
+              </TabsTrigger>
+              <TabsTrigger value="layout" className="gap-1.5">
+                <IconLayoutGrid size={14} />
+                Disposition
+              </TabsTrigger>
+              <TabsTrigger value="custom" className="gap-1.5">
+                <IconPalette size={14} />
+                Personnalisation
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="template">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {(Object.entries(TEMPLATE_META) as [ReviewTemplate, typeof TEMPLATE_META[ReviewTemplate]][]).map(([key, meta]) => (
+                  <button
+                    type="button"
+                    key={key}
+                    onClick={() => setValue('template', key)}
+                    className={cn(
+                      'flex flex-col items-stretch gap-2 p-2.5 rounded-2xl border-2 transition-all text-left',
+                      currentTemplate === key
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-foreground/30 bg-card'
+                    )}
+                  >
+                    <div className="aspect-[4/3] rounded-lg bg-muted/60 flex items-center justify-center p-2 overflow-hidden">
+                      {meta.thumbnail}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-foreground">{meta.label}</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{meta.description}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="layout">
+              <LayoutBuilder watch={watch} setValue={setValue} register={register} />
+            </TabsContent>
+
+            <TabsContent value="custom">
+              <CustomizationPanel watch={watch} setValue={setValue} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      <LayoutBuilder watch={watch} setValue={setValue} register={register} />
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-bold"><div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><IconEye size={16} /></div> Aperçu</CardTitle>
-          <CardDescription>Rendu en temps réel avec des avis fictifs</CardDescription>
+          <CardDescription>Rendu en temps réel avec vos avis synchronisés</CardDescription>
           <CardAction>
             <ShortcodeClipboard code="[werocket_reviews]" />
           </CardAction>
         </CardHeader>
         <CardContent>
           <div className="rounded-2xl bg-muted/40 p-4 sm:p-6">
-            <ReviewsPreview watch={watch} />
+            <ReviewsPreview watch={watch} refreshKey={previewRefreshKey} />
           </div>
         </CardContent>
       </Card>
@@ -231,6 +266,40 @@ export function ReviewsSettings() {
       </Card>
 
     </form>
+  )
+}
+
+/**
+ * Input masqué par défaut (type password) avec bouton œil pour révéler
+ * temporairement la valeur — pour les secrets type clé API.
+ */
+function SecretInput({
+  registration,
+  placeholder,
+}: {
+  registration: ReturnType<UseFormRegister<TReviewsSettings>>
+  placeholder?: string
+}) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <div className="relative">
+      <Input
+        {...registration}
+        type={visible ? 'text' : 'password'}
+        autoComplete="off"
+        placeholder={placeholder}
+        className="pr-10"
+      />
+      <button
+        type="button"
+        onClick={() => setVisible(v => !v)}
+        aria-label={visible ? 'Masquer la clé' : 'Afficher la clé'}
+        title={visible ? 'Masquer la clé' : 'Afficher la clé'}
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {visible ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+      </button>
+    </div>
   )
 }
 

@@ -14,9 +14,22 @@ const G = {
   bg: '#F8F9FA',
 } as const
 
+/* ─── Variables CSS de personnalisation (fallback = défaut template) ─── */
+const V = {
+  text: 'var(--wr-text, #1F1F1F)',
+  textMuted: 'var(--wr-text-muted, #5F6368)',
+  cardBg: 'var(--wr-card-bg, #FFFFFF)',
+  star: `var(--wr-star-color, ${G.yellow})`,
+  avatar: 'var(--wr-avatar-size, 40px)',
+} as const
+
 export interface TemplateProps {
   review: Review
   settings: Partial<ReviewsSettings>
+}
+
+function showBadge(settings: Partial<ReviewsSettings>): boolean {
+  return settings.show_google_badge !== false
 }
 
 /* ────────────────────────────────────────────────────────────── */
@@ -33,7 +46,7 @@ export function Stars({ rating, size = 16 }: { rating: number; size?: number }) 
           height={size}
           viewBox="0 0 24 24"
           aria-hidden
-          fill={n <= rating ? G.yellow : '#DADCE0'}
+          style={{ fill: n <= rating ? V.star : '#DADCE0' }}
         >
           <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
         </svg>
@@ -58,7 +71,12 @@ function pickAvatarColor(name: string): [string, string] {
 }
 
 function Avatar({ review, size = 40 }: { review: Review; size?: number }) {
-  const dim = { width: size, height: size, fontSize: Math.round(size * 0.42) }
+  // --wr-avatar-size (réglage global) prime sur la taille par défaut du template
+  const dim = {
+    width: `var(--wr-avatar-size, ${size}px)`,
+    height: `var(--wr-avatar-size, ${size}px)`,
+    fontSize: `calc(var(--wr-avatar-size, ${size}px) * 0.42)`,
+  }
   if (review.profile_photo_url) {
     return (
       <img
@@ -110,7 +128,7 @@ function PostedOnGoogle({ small = false }: { small?: boolean }) {
   return (
     <div
       className="inline-flex items-center gap-1.5"
-      style={{ color: G.textMuted, fontSize: small ? 11 : 12 }}
+      style={{ color: V.textMuted, fontSize: small ? 11 : 12 }}
     >
       <GoogleLogo size={small ? 12 : 14} />
       <span>Publié sur Google</span>
@@ -131,7 +149,7 @@ function ReviewText({
     <p
       className={cn('leading-relaxed', italic && 'italic')}
       style={{
-        color: G.text,
+        color: V.text,
         fontSize: 14,
         lineHeight: '1.55',
         textAlign: align,
@@ -148,6 +166,7 @@ function ReviewText({
 /* ────────────────────────────────────────────────────────────── */
 
 export function MinimalCard({ review, settings }: TemplateProps) {
+  const badge = showBadge(settings)
   return (
     <div
       className="py-5 first:pt-0 last:pb-0 border-b last:border-0"
@@ -157,21 +176,21 @@ export function MinimalCard({ review, settings }: TemplateProps) {
         {settings.show_avatar !== false && <Avatar review={review} size={36} />}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span style={{ color: G.text, fontSize: 14, fontWeight: 500 }}>
+            <span style={{ color: V.text, fontSize: 14, fontWeight: 500 }}>
               {review.author_name}
             </span>
-            <VerifiedBadge size={13} />
+            {badge && <VerifiedBadge size={13} />}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {settings.show_rating !== false && <Stars rating={review.rating} size={13} />}
             {settings.show_date !== false && review.relative_time_description && (
-              <span style={{ color: G.textMuted, fontSize: 12 }}>
+              <span style={{ color: V.textMuted, fontSize: 12 }}>
                 · {review.relative_time_description}
               </span>
             )}
           </div>
         </div>
-        <GoogleLogo size={16} />
+        {badge && <GoogleLogo size={16} />}
       </div>
       <ReviewText text={review.text} />
     </div>
@@ -184,11 +203,12 @@ export function MinimalCard({ review, settings }: TemplateProps) {
 /* ────────────────────────────────────────────────────────────── */
 
 export function ClassicCard({ review, settings }: TemplateProps) {
+  const badge = showBadge(settings)
   return (
     <div
       className="h-full flex flex-col"
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: V.cardBg,
         border: `1px solid ${G.border}`,
         padding: 'var(--wr-card-padding, 20px)',
         borderRadius: 'var(--wr-card-radius, 12px)',
@@ -201,19 +221,19 @@ export function ClassicCard({ review, settings }: TemplateProps) {
           <div className="flex items-center gap-1.5">
             <span
               className="truncate"
-              style={{ color: G.text, fontSize: 14, fontWeight: 500 }}
+              style={{ color: V.text, fontSize: 14, fontWeight: 500 }}
             >
               {review.author_name}
             </span>
-            <VerifiedBadge size={14} />
+            {badge && <VerifiedBadge size={14} />}
           </div>
           {settings.show_date !== false && review.relative_time_description && (
-            <span style={{ color: G.textMuted, fontSize: 12 }}>
+            <span style={{ color: V.textMuted, fontSize: 12 }}>
               {review.relative_time_description}
             </span>
           )}
         </div>
-        <GoogleLogo size={18} />
+        {badge && <GoogleLogo size={18} />}
       </div>
 
       {settings.show_rating !== false && (
@@ -224,12 +244,14 @@ export function ClassicCard({ review, settings }: TemplateProps) {
 
       <ReviewText text={review.text} />
 
-      <div
-        className="mt-4 pt-3"
-        style={{ borderTop: `1px solid ${G.border}` }}
-      >
-        <PostedOnGoogle small />
-      </div>
+      {badge && (
+        <div
+          className="mt-4 pt-3"
+          style={{ borderTop: `1px solid ${G.border}` }}
+        >
+          <PostedOnGoogle small />
+        </div>
+      )}
     </div>
   )
 }
@@ -240,11 +262,13 @@ export function ClassicCard({ review, settings }: TemplateProps) {
 /* ────────────────────────────────────────────────────────────── */
 
 export function CardCard({ review, settings }: TemplateProps) {
+  const badge = showBadge(settings)
+  const showMeta = badge || (settings.show_date !== false && !!review.relative_time_description)
   return (
     <div
       className="relative h-full flex flex-col overflow-hidden"
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: V.cardBg,
         padding: 'var(--wr-card-padding, 24px)',
         borderRadius: 'var(--wr-card-radius, 16px)',
         boxShadow: 'var(--wr-card-shadow, 0 4px 16px rgba(60, 64, 67, 0.08), 0 1px 4px rgba(60, 64, 67, 0.05))',
@@ -259,7 +283,7 @@ export function CardCard({ review, settings }: TemplateProps) {
 
       <div className="relative flex items-center justify-between mb-3">
         {settings.show_rating !== false && <Stars rating={review.rating} size={18} />}
-        <GoogleLogo size={20} />
+        {badge && <GoogleLogo size={20} />}
       </div>
 
       <ReviewText text={review.text} />
@@ -273,20 +297,22 @@ export function CardCard({ review, settings }: TemplateProps) {
           <div className="flex items-center gap-1.5">
             <span
               className="truncate"
-              style={{ color: G.text, fontSize: 14, fontWeight: 600 }}
+              style={{ color: V.text, fontSize: 14, fontWeight: 600 }}
             >
               {review.author_name}
             </span>
-            <VerifiedBadge size={14} />
+            {badge && <VerifiedBadge size={14} />}
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <GoogleLogo size={11} />
-            <span style={{ color: G.textMuted, fontSize: 11 }}>
-              {settings.show_date !== false && review.relative_time_description
-                ? `Avis publié ${review.relative_time_description}`
-                : 'Publié sur Google'}
-            </span>
-          </div>
+          {showMeta && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {badge && <GoogleLogo size={11} />}
+              <span style={{ color: V.textMuted, fontSize: 11 }}>
+                {settings.show_date !== false && review.relative_time_description
+                  ? `Avis publié ${review.relative_time_description}`
+                  : 'Publié sur Google'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -299,11 +325,12 @@ export function CardCard({ review, settings }: TemplateProps) {
 /* ────────────────────────────────────────────────────────────── */
 
 export function QuoteCard({ review, settings }: TemplateProps) {
+  const badge = showBadge(settings)
   return (
     <div
       className="relative h-full flex flex-col items-center text-center overflow-hidden"
       style={{
-        background: 'linear-gradient(160deg, #F8F9FA 0%, #FFFFFF 100%)',
+        background: 'var(--wr-card-bg, linear-gradient(160deg, #F8F9FA 0%, #FFFFFF 100%))',
         border: `1px solid ${G.border}`,
         padding: 'var(--wr-card-padding, 28px)',
         borderRadius: 'var(--wr-card-radius, 24px)',
@@ -326,17 +353,17 @@ export function QuoteCard({ review, settings }: TemplateProps) {
       <div className="flex flex-col items-center gap-2 mt-5">
         {settings.show_avatar !== false && <Avatar review={review} size={48} />}
         <div className="flex items-center gap-1.5">
-          <span style={{ color: G.text, fontSize: 14, fontWeight: 600 }}>
+          <span style={{ color: V.text, fontSize: 14, fontWeight: 600 }}>
             {review.author_name}
           </span>
-          <VerifiedBadge size={13} />
+          {badge && <VerifiedBadge size={13} />}
         </div>
         {settings.show_rating !== false && (
           <Stars rating={review.rating} size={15} />
         )}
         {settings.show_date !== false && review.relative_time_description && (
-          <div className="inline-flex items-center gap-1" style={{ color: G.textMuted, fontSize: 11 }}>
-            <GoogleLogo size={11} />
+          <div className="inline-flex items-center gap-1" style={{ color: V.textMuted, fontSize: 11 }}>
+            {badge && <GoogleLogo size={11} />}
             <span>{review.relative_time_description}</span>
           </div>
         )}
@@ -351,11 +378,12 @@ export function QuoteCard({ review, settings }: TemplateProps) {
 /* ────────────────────────────────────────────────────────────── */
 
 export function GoogleCard({ review, settings }: TemplateProps) {
+  const badge = showBadge(settings)
   return (
     <div
       className="h-full flex flex-col overflow-hidden"
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: V.cardBg,
         border: `1px solid ${G.border}`,
         borderRadius: 'var(--wr-card-radius, 12px)',
         boxShadow: 'var(--wr-card-shadow, none)',
@@ -371,10 +399,18 @@ export function GoogleCard({ review, settings }: TemplateProps) {
         }}
       >
         <div className="flex items-center gap-2">
-          <GoogleLogo size={18} />
-          <span style={{ color: G.text, fontSize: 13, fontWeight: 500 }}>
-            Avis Google
-          </span>
+          {badge ? (
+            <>
+              <GoogleLogo size={18} />
+              <span style={{ color: G.text, fontSize: 13, fontWeight: 500 }}>
+                Avis Google
+              </span>
+            </>
+          ) : (
+            <span style={{ color: G.text, fontSize: 13, fontWeight: 500 }}>
+              Avis client
+            </span>
+          )}
         </div>
         {settings.show_rating !== false && <Stars rating={review.rating} size={14} />}
       </div>
@@ -386,14 +422,14 @@ export function GoogleCard({ review, settings }: TemplateProps) {
             <div className="flex items-center gap-1.5">
               <span
                 className="truncate"
-                style={{ color: G.text, fontSize: 14, fontWeight: 500 }}
+                style={{ color: V.text, fontSize: 14, fontWeight: 500 }}
               >
                 {review.author_name}
               </span>
-              <VerifiedBadge size={14} />
+              {badge && <VerifiedBadge size={14} />}
             </div>
             {settings.show_date !== false && review.relative_time_description && (
-              <span style={{ color: G.textMuted, fontSize: 12 }}>
+              <span style={{ color: V.textMuted, fontSize: 12 }}>
                 {review.relative_time_description}
               </span>
             )}
@@ -402,17 +438,19 @@ export function GoogleCard({ review, settings }: TemplateProps) {
 
         <ReviewText text={review.text} />
 
-        <a
-          href="#"
-          onClick={e => e.preventDefault()}
-          className="inline-flex items-center gap-1 mt-4 self-start no-underline hover:underline"
-          style={{ color: G.blue, fontSize: 12, fontWeight: 500 }}
-        >
-          Voir sur Google
-          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
-            <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
+        {badge && (
+          <a
+            href="#"
+            onClick={e => e.preventDefault()}
+            className="inline-flex items-center gap-1 mt-4 self-start no-underline hover:underline"
+            style={{ color: G.blue, fontSize: 12, fontWeight: 500 }}
+          >
+            Voir sur Google
+            <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
+              <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        )}
       </div>
     </div>
   )
