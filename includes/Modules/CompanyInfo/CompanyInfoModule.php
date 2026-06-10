@@ -260,6 +260,15 @@ class CompanyInfoModule extends AbstractModule {
         $settings['logo_url']        = $this->resolve_attachment_url((int) ($settings['logo_id'] ?? 0));
         $settings['login_cover_url'] = $this->resolve_attachment_url((int) ($settings['login_cover_id'] ?? 0));
 
+        // Pages légales vides → template agence par défaut. Sans ce fallback,
+        // les sites ayant déjà sauvegardé leurs réglages (option existante
+        // avec legal_* = '') écrasent le défaut et l'éditeur reste vide.
+        foreach (['legal_mentions' => 'mentions', 'legal_privacy' => 'privacy'] as $key => $type) {
+            if (trim((string) ($settings[$key] ?? '')) === '') {
+                $settings[$key] = $this->default_legal_content($type);
+            }
+        }
+
         return $settings;
     }
 
