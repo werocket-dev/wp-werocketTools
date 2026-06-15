@@ -8,6 +8,7 @@ import {
   IconClipboard, IconCheck,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { copyToClipboard } from '@/lib/clipboard'
 import { RatingBadgeView } from '@/frontend/reviews/RatingBadge'
 import { ColorField } from './CustomizationPanel'
 import type { ReviewsMeta, ReviewsSettings } from '@/lib/types'
@@ -167,18 +168,9 @@ function CopyableCode({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(code)
-    } catch {
-      // Fallback pour les contextes non-HTTPS (ex: Local by Flywheel)
-      const el = document.createElement('textarea')
-      el.value = code
-      el.style.position = 'fixed'
-      el.style.opacity = '0'
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+    if (!(await copyToClipboard(code))) {
+      toast.error('Impossible de copier')
+      return
     }
     setCopied(true)
     toast.success('Shortcode copié dans le presse-papier')

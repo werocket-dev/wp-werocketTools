@@ -43,19 +43,26 @@ function buildResponsiveCSS(scope: string, settings: Partial<ReviewsSettings>): 
     --wr-slides: ${slidesN};
   `
 
+  /* Container queries : le layout s'adapte à la largeur du CONTENEUR où le
+     shortcode est inséré (pas à celle de la fenêtre). Le scope est le
+     contexte de requête (container-type), l'élément interne .wr-inner porte
+     les variables responsives résolues selon la largeur du conteneur. */
   return `
 ${scope} {
+  container-type: inline-size;
   --wr-card-radius: ${radius}px;
   --wr-card-shadow: ${shadow};
   --wr-avatar-size: ${avatarSize}px;
   ${colorVars}
+}
+${scope} .wr-inner {
   ${block(cols.mobile, gap.mobile, padding.mobile, slides.mobile)}
 }
-@media (min-width: ${TABLET_BP}px) {
-  ${scope} { ${block(cols.tablet, gap.tablet, padding.tablet, slides.tablet)} }
+@container (min-width: ${TABLET_BP}px) {
+  ${scope} .wr-inner { ${block(cols.tablet, gap.tablet, padding.tablet, slides.tablet)} }
 }
-@media (min-width: ${DESKTOP_BP}px) {
-  ${scope} { ${block(cols.desktop, gap.desktop, padding.desktop, slides.desktop)} }
+@container (min-width: ${DESKTOP_BP}px) {
+  ${scope} .wr-inner { ${block(cols.desktop, gap.desktop, padding.desktop, slides.desktop)} }
 }
 `.trim()
 }
@@ -91,25 +98,33 @@ export function ReviewsLayout({ children, settings }: LayoutProps) {
 
   if (style === 'list') {
     return (
-      <div className={cn(className, 'flex flex-col')} style={{ gap: 'var(--wr-gap)' }}>
-        {children}
+      <div className={className}>
+        <div className="wr-inner flex flex-col" style={{ gap: 'var(--wr-gap)' }}>
+          {children}
+        </div>
       </div>
     )
   }
 
   if (style === 'carousel') {
-    return <Carousel className={className} settings={settings}>{children}</Carousel>
+    return (
+      <div className={className}>
+        <Carousel className="wr-inner" settings={settings}>{children}</Carousel>
+      </div>
+    )
   }
 
   return (
-    <div
-      className={cn(className, 'grid')}
-      style={{
-        gridTemplateColumns: 'repeat(var(--wr-cols), minmax(0, 1fr))',
-        gap: 'var(--wr-gap)',
-      }}
-    >
-      {children}
+    <div className={className}>
+      <div
+        className="wr-inner grid"
+        style={{
+          gridTemplateColumns: 'repeat(var(--wr-cols), minmax(0, 1fr))',
+          gap: 'var(--wr-gap)',
+        }}
+      >
+        {children}
+      </div>
     </div>
   )
 }

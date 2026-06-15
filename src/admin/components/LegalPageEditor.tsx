@@ -9,6 +9,7 @@ import {
 import { IconCopy, IconCheck, IconBraces } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { copyToClipboard } from '@/lib/clipboard'
 import type { CompanyVariable } from '@/lib/types'
 import { RichTextEditor, type RichTextEditorHandle } from './RichTextEditor'
 
@@ -69,14 +70,13 @@ export function LegalPageEditor({
   }
 
   async function copyShortcode() {
-    try {
-      await navigator.clipboard.writeText(shortcode)
-      setCopied(true)
-      toast.success('Shortcode copié dans le presse-papier')
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
+    if (!(await copyToClipboard(shortcode))) {
       toast.error('Impossible de copier')
+      return
     }
+    setCopied(true)
+    toast.success('Shortcode copié dans le presse-papier')
+    setTimeout(() => setCopied(false), 1500)
   }
 
   const groupedVariables = variables.reduce<Record<string, CompanyVariable[]>>((acc, v) => {
