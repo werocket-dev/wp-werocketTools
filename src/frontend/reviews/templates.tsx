@@ -140,19 +140,26 @@ function ReviewText({
   text,
   italic = false,
   align = 'left',
+  clamp = 6,
 }: {
   text: string
   italic?: boolean
   align?: 'left' | 'center'
+  /** Nombre max de lignes affichées (troncature) pour uniformiser la hauteur des cards */
+  clamp?: number
 }) {
   return (
     <p
-      className={cn('leading-relaxed', italic && 'italic')}
+      className={cn('leading-relaxed flex-1 min-h-0', italic && 'italic')}
       style={{
         color: V.text,
         fontSize: 14,
         lineHeight: '1.55',
         textAlign: align,
+        display: '-webkit-box',
+        WebkitBoxOrient: 'vertical',
+        WebkitLineClamp: clamp,
+        overflow: 'hidden',
       }}
     >
       {text}

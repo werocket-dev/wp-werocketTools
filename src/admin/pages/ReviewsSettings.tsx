@@ -15,6 +15,7 @@ import {
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { copyToClipboard } from '@/lib/clipboard'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import { ReviewsPreview } from '../components/ReviewsPreview'
 import { LayoutBuilder } from '../components/layout-builder/LayoutBuilder'
@@ -387,18 +388,9 @@ function ShortcodeClipboard({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(code)
-    } catch {
-      // Fallback pour les contextes non-HTTPS (ex: Local by Flywheel)
-      const el = document.createElement('textarea')
-      el.value = code
-      el.style.position = 'fixed'
-      el.style.opacity = '0'
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+    if (!(await copyToClipboard(code))) {
+      toast.error('Impossible de copier')
+      return
     }
     setCopied(true)
     toast.success('Shortcode copié dans le presse-papier')

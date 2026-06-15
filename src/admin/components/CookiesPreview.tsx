@@ -23,6 +23,14 @@ const POSITION_LABEL: Record<string, string> = {
   'center': 'Pleine largeur',
 }
 
+// Couleurs principales par défaut (thèmes Clair/Sombre). Les couleurs custom
+// ne s'appliquent qu'au thème "Personnalisé" — cf. CookiesRoot.tsx :
+// config.theme !== 'custom' => aucune variable injectée, le front retombe sur
+// le token --primary du thème (globals.css : oklch(0.511 0.096 186.391) clair /
+// oklch(0.437 0.078 188.216) sombre).
+const DEFAULT_PRIMARY_LIGHT = '#0F766E'
+const DEFAULT_PRIMARY_DARK = '#107568'
+
 const FALLBACK = {
   title: 'Gestion des cookies',
   description: 'Nous utilisons des cookies pour améliorer votre expérience, mesurer l\'audience et personnaliser le contenu.',
@@ -49,10 +57,10 @@ export function CookiesPreview({ watch }: { watch: UseFormWatch<FormValues> }) {
   }
 
   const palette = theme === 'dark'
-    ? { bg: '#0F172A', text: '#F1F5F9', textSecondary: '#94A3B8', border: 'rgba(255,255,255,0.08)', primary: customColors.primary }
+    ? { bg: '#0F172A', text: '#F1F5F9', textSecondary: '#94A3B8', border: 'rgba(255,255,255,0.08)', primary: DEFAULT_PRIMARY_DARK }
     : theme === 'custom'
       ? { bg: customColors.bg, text: customColors.text, textSecondary: customColors.textSecondary, border: customColors.border, primary: customColors.primary }
-      : { bg: '#FFFFFF', text: '#0F172A', textSecondary: '#64748B', border: '#E2E8F0', primary: customColors.primary }
+      : { bg: '#FFFFFF', text: '#0F172A', textSecondary: '#64748B', border: '#E2E8F0', primary: DEFAULT_PRIMARY_LIGHT }
 
   const title = (watch('texts.notice_title' as keyof FormValues) as string) || FALLBACK.title
   const description = (watch('texts.notice_description' as keyof FormValues) as string) || FALLBACK.description
