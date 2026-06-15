@@ -1,0 +1,16 @@
+/*
+ * Feuille front des widgets du plugin (avis, bandeau cookies, badge).
+ *
+ * `important` ajoute !important à TOUS les utilitaires Tailwind. Raison :
+ * Tailwind v4 émet ses utilitaires dans des cascade layers (@layer utilities),
+ * or les styles NON-layered d'un builder (Breakdance, Elementor…) battent
+ * systématiquement tout style layered pour les déclarations normales — d'où
+ * des styles « invisibles ». Un !important layered reprend la main sur le
+ * normal ET l'important non-layered du builder.
+ *
+ * Confiné au front : l'admin (#werocket-app) garde globals.css en mode normal
+ * pour ne pas casser le positionnement inline de Radix ni le theming des
+ * aperçus.
+ */
+@import "tailwindcss" important;
+@import "./_tw-base.css";

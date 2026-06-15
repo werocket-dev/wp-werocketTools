@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import '@/styles/globals.css'
+import '@/styles/frontend.css'
 import { ReviewsWidget } from './ReviewsWidget'
 import { RatingBadge } from './RatingBadge'
 import type { ReviewTemplate } from '@/lib/types'

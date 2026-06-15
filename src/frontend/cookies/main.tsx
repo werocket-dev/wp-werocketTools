@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import '@/styles/globals.css'
+import '@/styles/frontend.css'
 import { CookiesRoot } from './CookiesRoot'
 import type { CookiesSettings } from '@/lib/types'
 
