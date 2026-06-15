@@ -21,6 +21,22 @@ class Shortcodes {
         add_shortcode('werocket_legal', [$this, 'render_legal']);
         add_shortcode('company_info',   [$this, 'render_field']);
         add_shortcode('company_logo',   [$this, 'render_logo']);
+
+        add_action('wp_enqueue_scripts', [$this, 'register_assets']);
+    }
+
+    /**
+     * Enregistre (sans charger) la feuille de style des pages légales.
+     * L'enqueue effectif est conditionnel : il a lieu dans render_legal(),
+     * uniquement sur les pages contenant le shortcode.
+     */
+    public function register_assets(): void {
+        wp_register_style(
+            'wr-legal',
+            WEROCKET_TOOLS_PLUGIN_URL . 'assets/css/legal.css',
+            [],
+            WEROCKET_TOOLS_VERSION
+        );
     }
 
     /**
@@ -38,6 +54,11 @@ class Shortcodes {
 
         $rendered = $this->resolver->render($content);
         $allowed_html = wp_kses_allowed_html('post');
+
+        // Charge le style uniquement quand le shortcode est réellement affiché.
+        // wp_register_style a déjà tourné sur wp_enqueue_scripts ; en cas
+        // d'enqueue tardif (dans le_content), WP imprime la feuille en footer.
+        wp_enqueue_style('wr-legal');
 
         return '<div class="werocket-legal werocket-legal--' . esc_attr($atts['type']) . '">' .
             wp_kses($rendered, $allowed_html) .
