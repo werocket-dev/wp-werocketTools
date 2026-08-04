@@ -15,6 +15,7 @@
   #werocket-app,
   .werocket-cookies-scope,
   .werocket-reviews-mount,
+  .werocket-badge-mount,
   [data-slot="dialog-content"],
   [data-slot="dialog-overlay"],
   [data-slot="select-content"],
@@ -64,6 +65,7 @@
   #werocket-app.dark,
   .werocket-cookies-scope.dark,
   .werocket-reviews-mount.dark,
+  .werocket-badge-mount.dark,
   [data-slot="dialog-content"].dark,
   [data-slot="select-content"].dark,
   [data-slot="popover-content"].dark,
@@ -174,32 +176,52 @@
 #werocket-cookies-banner *,
 #werocket-cookies-banner *::before,
 #werocket-cookies-banner *::after,
+.werocket-cookies-scope,
+.werocket-cookies-scope *,
+.werocket-cookies-scope *::before,
+.werocket-cookies-scope *::after,
 .werocket-reviews-mount,
-.werocket-reviews-mount * {
+.werocket-reviews-mount *,
+.werocket-badge-mount,
+.werocket-badge-mount * {
   box-sizing: border-box;
 }
 
 #werocket-app,
 #werocket-cookies-banner,
-.werocket-reviews-mount {
+.werocket-cookies-scope,
+.werocket-reviews-mount,
+.werocket-badge-mount {
   font-family: 'Inter Variable', sans-serif;
 }
 
 /* ─── Reset border-color (Tailwind v4 ne le fait plus en base) ─── */
-/* Couvre nos containers React + tout composant shadcn (data-slot)
-   rendu via Radix Portal en dehors de nos scopes. */
+/* Couvre nos containers React + les composants shadcn rendus via Radix Portal
+   en dehors de nos scopes (ils atterrissent sous <body>).
+   Le sélecteur nu `[data-slot]` a été retiré : non scopé, il repeignait la
+   border-color de tout élément portant cet attribut sur la page (Gutenberg,
+   autres plugins) — et comme `--border` n'y est pas défini, la déclaration
+   devenait invalide au calcul et retombait sur `currentColor`. */
 @layer base {
   #werocket-app *,
   #werocket-app *::before,
   #werocket-app *::after,
-  #werocket-cookies-banner *,
-  #werocket-cookies-banner *::before,
-  #werocket-cookies-banner *::after,
+  .werocket-cookies-scope,
+  .werocket-cookies-scope *,
+  .werocket-cookies-scope *::before,
+  .werocket-cookies-scope *::after,
   .werocket-reviews-mount *,
-  [data-slot],
-  [data-slot] *,
-  [data-slot] *::before,
-  [data-slot] *::after,
+  .werocket-badge-mount *,
+  /* Portals Radix hors de nos scopes. Les contenus de type popper
+     (select, popover, et tout dropdown/tooltip ajouté plus tard) sont enfants
+     de [data-radix-popper-content-wrapper] : ce seul sélecteur les couvre.
+     Reste le Dialog, qui se porte directement sous <body>. */
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"],
+  [data-slot="dialog-content"] *,
+  [data-slot="dialog-content"] *::before,
+  [data-slot="dialog-content"] *::after,
+  [data-radix-popper-content-wrapper],
   [data-radix-popper-content-wrapper] *,
   [data-radix-popper-content-wrapper] *::before,
   [data-radix-popper-content-wrapper] *::after {

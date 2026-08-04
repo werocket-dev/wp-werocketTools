@@ -1,16 +1,352 @@
 /*
- * Feuille front des widgets du plugin (avis, bandeau cookies, badge).
+ * Feuille front des widgets du plugin (avis, badge, bandeau cookies).
  *
- * `important` ajoute !important à TOUS les utilitaires Tailwind. Raison :
- * Tailwind v4 émet ses utilitaires dans des cascade layers (@layer utilities),
- * or les styles NON-layered d'un builder (Breakdance, Elementor…) battent
- * systématiquement tout style layered pour les déclarations normales — d'où
- * des styles « invisibles ». Un !important layered reprend la main sur le
- * normal ET l'important non-layered du builder.
+ * ─── Pourquoi cette feuille n'importe PAS "tailwindcss" tel quel ───
  *
- * Confiné au front : l'admin (#werocket-app) garde globals.css en mode normal
- * pour ne pas casser le positionnement inline de Radix ni le theming des
- * aperçus.
+ * `@import "tailwindcss"` inline le preflight de Tailwind (le reset global) en
+ * `@layer base`, sans aucun scope. Or cette feuille est enqueuée sur TOUT le
+ * front dès que le module Cookies est actif : le reset s'appliquait donc à
+ * l'intégralité des pages du site et écrasait les défauts du navigateur —
+ * puces de listes supprimées (`ol,ul,menu{list-style:none}`), marges et
+ * paddings natifs remis à zéro (`*{margin:0;padding:0}`), hiérarchie des
+ * titres aplatie, liens dé-stylés, images forcées en `display:block`… Un
+ * `@layer base` reste faible face aux autres feuilles auteur, mais il bat
+ * TOUJOURS la feuille par défaut du navigateur : partout où le builder
+ * (Breakdance, Elementor…) ne redéclare pas explicitement la propriété, c'était
+ * le preflight du plugin qui gagnait.
+ *
+ * On recompose donc l'import à la main sans `preflight.css`, et on réintroduit
+ * l'équivalent scopé aux seuls conteneurs du plugin (voir plus bas).
+ *
+ * `important` sur les utilitaires reste nécessaire : Tailwind v4 les émet dans
+ * une cascade layer, or les styles NON-layered d'un builder battent
+ * systématiquement tout style layered pour les déclarations normales — d'où des
+ * widgets « invisibles ». Un !important layered reprend la main sur le normal ET
+ * l'important non-layered du builder.
+ *
+ * L'admin (#werocket-app) garde `globals.css` — preflight global inclus, mode
+ * normal : il est seul dans son écran et Radix a besoin du positionnement inline.
  */
-@import "tailwindcss" important;
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) important;
 @import "./_tw-base.css";
+
+/*
+ * ─── Preflight scopé ───
+ *
+ * Portage de node_modules/tailwindcss/preflight.css, restreint aux racines des
+ * widgets. Les portals Radix (DialogContent / DialogOverlay du bandeau cookies)
+ * se montent directement sous <body> : ils doivent figurer dans la liste, comme
+ * pour les variables de thème dans _tw-base.css.
+ *
+ * Ces règles vivent en `@layer base` : les utilitaires (`@layer utilities`,
+ * déclaré après) gardent la main, la spécificité (0,1,0) de `:is()` ne change
+ * rien à cet arbitrage — c'est l'ordre des layers qui tranche.
+ *
+ * Toute nouvelle racine de montage front doit être ajoutée ici ET dans la liste
+ * de scopes de _tw-base.css.
+ */
+@layer base {
+  /* 1. Modèle de boîte, marges, bordures.
+        `border: 0 solid` est indispensable : les utilitaires `border-*` ne
+        posent qu'une `border-width`, sans style, donc rien ne s'afficherait. */
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ),
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) *,
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) ::before,
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) ::after,
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) ::backdrop {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+  }
+
+  /* 2. Typo de base des conteneurs — remplace le `html, :host` du preflight,
+        qui n'a évidemment pas sa place ici. */
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(
+      --default-font-family,
+      ui-sans-serif,
+      system-ui,
+      sans-serif,
+      "Apple Color Emoji",
+      "Segoe UI Emoji",
+      "Segoe UI Symbol",
+      "Noto Color Emoji"
+    );
+    font-feature-settings: var(--default-font-feature-settings, normal);
+    font-variation-settings: var(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 3. Normalisation par élément, à l'intérieur des conteneurs uniquement. */
+  :is(
+      .werocket-cookies-scope,
+      .werocket-reviews-mount,
+      .werocket-badge-mount,
+      [data-slot="dialog-content"],
+      [data-slot="dialog-overlay"],
+      [data-radix-popper-content-wrapper]
+    ) {
+    /* Listes : c'est CETTE règle qui, non scopée, effaçait les puces du site. */
+    :is(ol, ul, menu) {
+      list-style: none;
+    }
+
+    :is(h1, h2, h3, h4, h5, h6) {
+      font-size: inherit;
+      font-weight: inherit;
+    }
+
+    a {
+      color: inherit;
+      -webkit-text-decoration: inherit;
+      text-decoration: inherit;
+    }
+
+    :is(b, strong) {
+      font-weight: bolder;
+    }
+
+    :is(img, svg, video, canvas, audio, iframe, embed, object) {
+      display: block;
+      vertical-align: middle;
+    }
+
+    :is(img, video) {
+      max-width: 100%;
+      height: auto;
+    }
+
+    :is(button, input, select, optgroup, textarea),
+    ::file-selector-button {
+      font: inherit;
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+      border-radius: 0;
+      background-color: transparent;
+      opacity: 1;
+    }
+
+    :is(button, input:is([type="button"], [type="reset"], [type="submit"])),
+    ::file-selector-button {
+      appearance: button;
+    }
+
+    ::file-selector-button {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: 0 solid;
+      margin-inline-end: 4px;
+    }
+
+    :where(select:is([multiple], [size])) optgroup {
+      font-weight: bolder;
+    }
+
+    :where(select:is([multiple], [size])) optgroup option {
+      padding-inline-start: 20px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    ::placeholder {
+      opacity: 1;
+    }
+
+    ::-webkit-search-decoration {
+      -webkit-appearance: none;
+    }
+
+    ::-webkit-date-and-time-value {
+      min-height: 1lh;
+      text-align: inherit;
+    }
+
+    ::-webkit-datetime-edit {
+      display: inline-flex;
+      padding-block: 0;
+    }
+
+    ::-webkit-datetime-edit-fields-wrapper {
+      padding: 0;
+    }
+
+    ::-webkit-datetime-edit-year-field,
+    ::-webkit-datetime-edit-month-field,
+    ::-webkit-datetime-edit-day-field,
+    ::-webkit-datetime-edit-hour-field,
+    ::-webkit-datetime-edit-minute-field,
+    ::-webkit-datetime-edit-second-field,
+    ::-webkit-datetime-edit-millisecond-field,
+    ::-webkit-datetime-edit-meridiem-field {
+      padding-block: 0;
+    }
+
+    ::-webkit-calendar-picker-indicator {
+      line-height: 1;
+    }
+
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button {
+      height: auto;
+    }
+
+    @supports (not (-webkit-appearance: -apple-pay-button)) or
+      (contain-intrinsic-size: 1px) {
+      ::placeholder {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+
+    :is(code, kbd, samp, pre) {
+      font-family: var(
+        --default-mono-font-family,
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        "Liberation Mono",
+        "Courier New",
+        monospace
+      );
+      font-feature-settings: var(--default-mono-font-feature-settings, normal);
+      font-variation-settings: var(
+        --default-mono-font-variation-settings,
+        normal
+      );
+      font-size: 1em;
+    }
+
+    small {
+      font-size: 80%;
+    }
+
+    :is(sub, sup) {
+      font-size: 75%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+    }
+
+    sub {
+      bottom: -0.25em;
+    }
+
+    sup {
+      top: -0.5em;
+    }
+
+    hr {
+      height: 0;
+      color: inherit;
+      border-top-width: 1px;
+    }
+
+    table {
+      text-indent: 0;
+      border-color: inherit;
+      border-collapse: collapse;
+    }
+
+    abbr:where([title]) {
+      -webkit-text-decoration: underline dotted;
+      text-decoration: underline dotted;
+    }
+
+    summary {
+      display: list-item;
+    }
+
+    progress {
+      vertical-align: baseline;
+    }
+
+    :-moz-focusring {
+      outline: auto;
+    }
+
+    :-moz-ui-invalid {
+      box-shadow: none;
+    }
+
+    [hidden]:where(:not([hidden="until-found"])) {
+      display: none !important;
+    }
+  }
+
+  /*
+   * Le shortcode [werocket_cookie_settings] / [werocket_manage_cookies] rend un
+   * <button> ou <a> DANS le contenu du site — hors de tout scope du plugin. En
+   * variante <button>, il n'a aucun style propre : c'est le preflight global qui
+   * le neutralisait, et le retirer le renvoyait au bouton gris du navigateur.
+   * On reproduit donc ce reset ici, explicitement.
+   *
+   * `:where()` met la spécificité à zéro : la règle bat la feuille par défaut du
+   * navigateur mais cède devant n'importe quelle classe passée en `class=""`
+   * (celle du thème ou du builder), qui reste le moyen prévu de le styler.
+   * La variante <a> n'est pas touchée : elle doit hériter des liens du thème.
+   */
+  :where(button.werocket-cookie-settings-link) {
+    appearance: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+}
