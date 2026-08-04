@@ -258,11 +258,4 @@ class ClickCollectModule extends AbstractModule {
         return (float) $value;
     }
 
-    private static function sanitize_hex_color(string $hex, string $fallback): string {
-        $hex = trim($hex);
-        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $hex)) {
-            return strtolower($hex);
-        }
-        return $fallback;
-    }
 }

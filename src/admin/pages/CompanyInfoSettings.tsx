@@ -15,6 +15,7 @@ import {
   IconRuler2, IconDroplet, IconRestore,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { Spinner } from '../components/Spinner'
 import { cn } from '@/lib/utils'
 import { openMediaPicker } from '@/lib/wp-media'
 import { useRegisterSaveForm } from '../context/SaveContext'
@@ -186,14 +187,7 @@ export function CompanyInfoSettings() {
     setLoginCoverUrl('')
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
-        <IconLoader2 size={20} className="animate-spin" />
-        <span className="text-sm">Chargement...</span>
-      </div>
-    )
-  }
+  if (loading) return <Spinner />
 
   return (
     <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">

@@ -362,34 +362,46 @@ class Frontend {
         return preg_match('/^[0-9a-f.:]+$/i', $ip) ? $ip : '';
     }
 
-    /** Convertit un hex (#RGB ou #RRGGBB) en rgba(r,g,b,a). */
-    public static function hex_to_rgba(string $hex, float $alpha = 1.0): string {
+    /**
+     * Décompose un hex (#RGB ou #RRGGBB) en composantes [r, g, b].
+     * Retourne null si la valeur n'est pas un hex exploitable.
+     *
+     * @return array{0:int,1:int,2:int}|null
+     */
+    private static function hex_to_rgb(string $hex): ?array {
         $hex = ltrim(trim($hex), '#');
         if (strlen($hex) === 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
         if (strlen($hex) !== 6) {
+            return null;
+        }
+        return [
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /** Convertit un hex (#RGB ou #RRGGBB) en rgba(r,g,b,a). */
+    public static function hex_to_rgba(string $hex, float $alpha = 1.0): string {
+        $rgb = self::hex_to_rgb($hex);
+        if ($rgb === null) {
             return 'rgba(15, 118, 110, ' . $alpha . ')';
         }
-        $r = (int) hexdec(substr($hex, 0, 2));
-        $g = (int) hexdec(substr($hex, 2, 2));
-        $b = (int) hexdec(substr($hex, 4, 2));
-        return sprintf('rgba(%d, %d, %d, %s)', $r, $g, $b, $alpha);
+        return sprintf('rgba(%d, %d, %d, %s)', $rgb[0], $rgb[1], $rgb[2], $alpha);
     }
 
     /** Assombrit un hex en multipliant les composantes RGB par un facteur (0-1). */
     public static function darken_hex(string $hex, float $factor = 0.85): string {
-        $hex = ltrim(trim($hex), '#');
-        if (strlen($hex) === 3) {
-            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-        }
-        if (strlen($hex) !== 6) {
+        $rgb = self::hex_to_rgb($hex);
+        if ($rgb === null) {
             return '#0B5851';
         }
-        $r = max(0, min(255, (int) round(hexdec(substr($hex, 0, 2)) * $factor)));
-        $g = max(0, min(255, (int) round(hexdec(substr($hex, 2, 2)) * $factor)));
-        $b = max(0, min(255, (int) round(hexdec(substr($hex, 4, 2)) * $factor)));
-        return sprintf('#%02x%02x%02x', $r, $g, $b);
+        return sprintf(
+            '#%02x%02x%02x',
+            ...array_map(fn(int $c) => max(0, min(255, (int) round($c * $factor))), $rgb)
+        );
     }
 
     private function redirect_back(array $extra_query = []): void {

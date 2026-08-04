@@ -347,15 +347,7 @@ class Checkout {
      * Doit lever une exception pour bloquer le placement.
      */
     public function validate_store_api(\WC_Order $order, $request): void {
-        $shipping_items = $order->get_shipping_methods();
-        $is_cc = false;
-        foreach ($shipping_items as $sm) {
-            if ($sm->get_method_id() === ClickCollectModule::SHIPPING_METHOD_ID) {
-                $is_cc = true;
-                break;
-            }
-        }
-        if (!$is_cc) {
+        if (!self::order_uses_click_collect($order)) {
             return;
         }
 
@@ -400,15 +392,7 @@ class Checkout {
      * sur le flux Store API ; on duplique ici par sécurité.
      */
     public function save_store_api(\WC_Order $order, $request): void {
-        $shipping_items = $order->get_shipping_methods();
-        $is_cc = false;
-        foreach ($shipping_items as $sm) {
-            if ($sm->get_method_id() === ClickCollectModule::SHIPPING_METHOD_ID) {
-                $is_cc = true;
-                break;
-            }
-        }
-        if (!$is_cc) {
+        if (!self::order_uses_click_collect($order)) {
             return;
         }
 
@@ -501,16 +485,22 @@ class Checkout {
         return $map[$date->format('D')] ?? 'mon';
     }
 
-    public function save_to_order(\WC_Order $order, array $data): void {
-        $chosen_methods = $order->get_shipping_methods();
-        $is_cc = false;
-        foreach ($chosen_methods as $sm) {
+    /**
+     * La commande passe-t-elle par le mode d'expédition Clic & Collect ?
+     * Utilisé comme garde d'entrée par les trois hooks de persistance
+     * (checkout classique, Store API validate, Store API save).
+     */
+    private static function order_uses_click_collect(\WC_Order $order): bool {
+        foreach ($order->get_shipping_methods() as $sm) {
             if ($sm->get_method_id() === ClickCollectModule::SHIPPING_METHOD_ID) {
-                $is_cc = true;
-                break;
+                return true;
             }
         }
-        if (!$is_cc) {
+        return false;
+    }
+
+    public function save_to_order(\WC_Order $order, array $data): void {
+        if (!self::order_uses_click_collect($order)) {
             return;
         }
 

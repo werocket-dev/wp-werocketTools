@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  IconKey, IconEye, IconEyeOff, IconLoader2, IconExternalLink, IconRefresh,
+  IconKey, IconEye, IconEyeOff, IconExternalLink, IconRefresh,
   IconCircleCheck, IconAlertTriangle, IconClock, IconClipboard, IconCheck,
   IconTemplate, IconLayoutGrid, IconPalette, IconStar,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { Spinner } from '../components/Spinner'
 import { cn } from '@/lib/utils'
 import { copyToClipboard } from '@/lib/clipboard'
 import { useRegisterSaveForm } from '../context/SaveContext'
@@ -409,13 +410,5 @@ function ShortcodeClipboard({ code }: { code: string }) {
         ? <IconCheck size={13} className="text-primary shrink-0" />
         : <IconClipboard size={13} className="text-muted-foreground shrink-0" />}
     </button>
-  )
-}
-
-function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-      <IconLoader2 size={20} className="animate-spin" /> Chargement...
-    </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { GoogleLogo, Stars } from './templates'
 import type { ReviewsMeta, ReviewsSettings } from '@/lib/types'
+import { fetchReviews } from './reviews-api'
 
 /* ─── Vue pure : réutilisée par le widget frontend ET l'aperçu admin ─── */
 
@@ -75,11 +76,6 @@ export function RatingBadgeView({
 
 /* ─── Widget frontend : fetch la note + applique réglages et overrides ─── */
 
-function getRestUrl(): string {
-  return (window as unknown as Record<string, Record<string, string>>)['werocketFrontend']?.restUrl
-    ?? '/wp-json/werocket/v1/'
-}
-
 /** Attributs shortcode : '' = défaut réglages, '1'/'0' = override */
 export interface RatingBadgeProps {
   logo: string
@@ -101,11 +97,10 @@ export function RatingBadge({ logo, note, etoiles, avis, carte }: RatingBadgePro
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`${getRestUrl()}reviews`)
-      .then(r => r.json())
-      .then(data => {
-        setMeta(data.meta ?? null)
-        setSettings(data.settings ?? {})
+    fetchReviews()
+      .then(({ meta, settings }) => {
+        setMeta(meta)
+        setSettings(settings)
       })
       .catch(() => setMeta(null))
       .finally(() => setLoading(false))

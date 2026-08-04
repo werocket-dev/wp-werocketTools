@@ -6,21 +6,6 @@ export interface Module {
   active: boolean
 }
 
-export interface ModulesResponse {
-  modules: Module[]
-}
-
-export interface SettingsResponse {
-  settings: Record<string, unknown>
-}
-
-export interface ApiResponse<T = unknown> {
-  success?: boolean
-  data?: T
-  message?: string
-  code?: string
-}
-
 export interface Review {
   author_name: string
   profile_photo_url?: string

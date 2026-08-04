@@ -143,15 +143,6 @@ class GoogleReviewsModule extends AbstractModule {
         $avatar_size = (int) ($data['avatar_size'] ?? 40);
         $avatar_size = max(24, min(72, $avatar_size));
 
-        // '' = couleur auto (défaut du template), sinon hex valide obligatoire
-        $sanitize_color = static function ($value): string {
-            $value = trim((string) $value);
-            if ($value === '') {
-                return '';
-            }
-            return sanitize_hex_color($value) ?: '';
-        };
-
         // Champ vidé = retour à la clé agence par défaut (jamais de clé vide)
         $api_key = sanitize_text_field($data['google_api_key'] ?? '');
         if ($api_key === '') {
@@ -180,9 +171,9 @@ class GoogleReviewsModule extends AbstractModule {
             'card_radius' => $card_radius,
             'card_shadow' => $shadow,
 
-            'card_bg_color' => $sanitize_color($data['card_bg_color'] ?? ''),
-            'text_color' => $sanitize_color($data['text_color'] ?? ''),
-            'star_color' => $sanitize_color($data['star_color'] ?? ''),
+            'card_bg_color' => self::sanitize_hex_color($data['card_bg_color'] ?? ''),
+            'text_color' => self::sanitize_hex_color($data['text_color'] ?? ''),
+            'star_color' => self::sanitize_hex_color($data['star_color'] ?? ''),
             'avatar_size' => $avatar_size,
             'show_google_badge' => !empty($data['show_google_badge']),
 
@@ -191,9 +182,9 @@ class GoogleReviewsModule extends AbstractModule {
             'badge_show_stars' => !empty($data['badge_show_stars']),
             'badge_show_count' => !empty($data['badge_show_count']),
             'badge_card' => !empty($data['badge_card']),
-            'badge_rating_color' => $sanitize_color($data['badge_rating_color'] ?? ''),
-            'badge_star_color' => $sanitize_color($data['badge_star_color'] ?? ''),
-            'badge_count_color' => $sanitize_color($data['badge_count_color'] ?? ''),
+            'badge_rating_color' => self::sanitize_hex_color($data['badge_rating_color'] ?? ''),
+            'badge_star_color' => self::sanitize_hex_color($data['badge_star_color'] ?? ''),
+            'badge_count_color' => self::sanitize_hex_color($data['badge_count_color'] ?? ''),
 
             'carousel_autoplay' => !empty($data['carousel_autoplay']),
             'carousel_autoplay_speed' => $autoplay_speed,

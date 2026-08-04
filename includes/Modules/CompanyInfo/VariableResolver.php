@@ -56,12 +56,11 @@ class VariableResolver {
      * @return array<string,string>
      */
     private function build_values(array $s): array {
-        $address_parts = array_filter([
-            (string) ($s['street']      ?? ''),
+        $address_full = implode(', ', array_filter([
+            trim((string) ($s['street'] ?? '')),
             trim(((string) ($s['postal_code'] ?? '')) . ' ' . ((string) ($s['city'] ?? ''))),
-            (string) ($s['country']     ?? ''),
-        ]);
-        $address_full = implode(', ', array_filter($address_parts, fn($v) => trim((string) $v) !== ''));
+            trim((string) ($s['country'] ?? '')),
+        ]));
 
         $logo_url = '';
         if (!empty($s['logo_id'])) {

@@ -188,7 +188,6 @@ class Cpt {
         // sécurité et exclusion explicite des arrays/objects.
         foreach ($settings as $key => $value) {
             if (in_array($key, self::EXCLUDED_FIELDS, true)) continue;
-            if (is_array($value) || is_object($value)) continue;
             if (!is_scalar($value) && $value !== null) continue;
             update_post_meta($post_id, self::META_PREFIX . $key, (string) $value);
         }

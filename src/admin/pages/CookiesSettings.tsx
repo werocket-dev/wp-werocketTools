@@ -13,13 +13,14 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import {
-  IconLoader2, IconDatabase, IconAdjustmentsHorizontal, IconPalette,
+  IconDatabase, IconAdjustmentsHorizontal, IconPalette,
   IconFileText, IconCookie, IconBrandGoogle, IconCode,
   IconBrandGoogleAnalytics, IconBrandMeta, IconBrandYoutube,
   IconBrandLinkedin, IconBrandVimeo, IconTag, IconChartHistogram, IconAd,
 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
+import { Spinner } from '../components/Spinner'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import { CookiesPreview } from '../components/CookiesPreview'
 import { CookieScannerCard } from '../components/cookies/CookieScannerCard'
@@ -103,12 +104,7 @@ export function CookiesSettings() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-      <IconLoader2 size={20} className="animate-spin" />
-      Chargement...
-    </div>
-  )
+  if (loading) return <Spinner />
 
   return (
     <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
