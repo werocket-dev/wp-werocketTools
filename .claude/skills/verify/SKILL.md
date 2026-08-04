@@ -66,10 +66,15 @@ curl -sk -b cookies.txt -H "X-WP-Nonce: $NONCE" \
 
 ## Écrire des settings — sauvegarder d'abord
 
-Le body **doit** être `{"settings": {...}}`. Un body à plat est accepté sans
-erreur : `$data` vaut `[]`, tous les champs retombent aux défauts et la réponse
-dit quand même « Paramètres enregistrés ». On écrase les réglages réels du site
-sans le voir. Toujours :
+Le body **doit** être `{"settings": {...}}` — une map non vide. Depuis
+`fix/settings-put-silent-reset`, tout autre payload (body à plat, `{}`,
+`settings` vide / `null` / scalaire / liste JSON) est refusé par un
+`400 invalid_settings_payload` sans rien écrire. Avant ce correctif, un body à
+plat était accepté, remettait chaque champ à son défaut et répondait quand même
+« Paramètres enregistrés ».
+
+Un payload **valide** reste destructif pour les champs qu'il omet : les absents
+sont réinitialisés (c'est ce qui permet de décocher une case). Donc toujours :
 
 ```bash
 curl -sk -b cookies.txt -H "X-WP-Nonce: $NONCE" \
