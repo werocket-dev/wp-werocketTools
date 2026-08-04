@@ -197,8 +197,35 @@ class RestApi {
             return new WP_Error('module_not_found', __('Module non trouvé', 'werocket-tools'), ['status' => 404]);
         }
 
-        $body = $request->get_json_params();
-        $data = $body['settings'] ?? [];
+        $body     = $request->get_json_params();
+        $settings = is_array($body) ? ($body['settings'] ?? null) : null;
+
+        // `settings` doit être une MAP de réglages. Tout autre payload aboutissait
+        // à save_settings([]) : sanitize_settings() remettait CHAQUE champ à sa
+        // valeur par défaut et la réponse annonçait quand même un enregistrement
+        // réussi — le module était réinitialisé en silence.
+        //
+        // Les champs absents valant « valeur par défaut » (c'est ce qui permet de
+        // décocher une case), on ne peut pas fusionner avec l'existant pour rendre
+        // les payloads partiels inoffensifs : il faut les refuser.
+        //
+        // Le test de liste est nécessaire en plus de is_array() : un tableau JSON
+        // (`"settings": [1,2]`) arrive comme liste PHP, passe is_array() et ne
+        // porte aucune clé de réglage. Le cas vide est traité séparément car
+        // range(0, -1) vaut [0, -1], donc il échapperait à la comparaison.
+        $is_map = is_array($settings)
+            && $settings !== []
+            && array_keys($settings) !== range(0, count($settings) - 1);
+
+        if (!$is_map) {
+            return new WP_Error(
+                'invalid_settings_payload',
+                __('Payload invalide : le corps de la requête doit contenir un objet « settings » non vide, portant l\'intégralité des réglages du module (les champs omis sont réinitialisés).', 'werocket-tools'),
+                ['status' => 400]
+            );
+        }
+
+        $data = $settings;
 
         // Wrap dans try/catch pour capturer toute exception fatale (ex: un
         // plugin tiers qui filtre update_option, un wp_kses qui bug, un
