@@ -3,11 +3,7 @@ import { IconLoader2 } from '@tabler/icons-react'
 import { TEMPLATES } from './templates'
 import { ReviewsLayout } from './layout'
 import type { Review, ReviewsSettings, ReviewTemplate } from '@/lib/types'
-
-function getRestUrl(): string {
-  return (window as unknown as Record<string, Record<string, string>>)['werocketFrontend']?.restUrl
-    ?? '/wp-json/werocket/v1/'
-}
+import { fetchReviews } from './reviews-api'
 
 interface Props {
   count: number
@@ -21,11 +17,8 @@ export function ReviewsWidget({ count, displayStyle, templateOverride }: Props) 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`${getRestUrl()}reviews`)
-      .then(r => r.json())
-      .then(data => {
-        const s: ReviewsSettings = data.settings ?? {}
-        const all: Review[] = data.reviews ?? []
+    fetchReviews()
+      .then(({ reviews: all, settings: s }) => {
         const minRating = s.min_rating ?? 4
         setSettings(s)
         setReviews(all.filter(r => r.rating >= minRating).slice(0, count))

@@ -70,6 +70,17 @@ abstract class AbstractModule implements ModuleInterface {
     }
 
     /**
+     * Sanitise une couleur hexadécimale de réglage, normalisée en minuscules.
+     *
+     * Passe `''` en $fallback pour un champ « couleur optionnelle » où la chaîne
+     * vide signifie « pas d'override, garder le défaut du thème ».
+     */
+    protected static function sanitize_hex_color(mixed $value, string $fallback = ''): string {
+        $hex = \sanitize_hex_color(trim((string) $value));
+        return $hex ? strtolower($hex) : $fallback;
+    }
+
+    /**
      * Check if array is indexed (sequential numeric keys starting from 0)
      */
     protected function is_indexed_array(array $array): bool {

@@ -5,8 +5,6 @@
 
 namespace WeRocket\Tools\Modules\ClickCollect;
 
-use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
-
 class Admin {
 
     private ClickCollectModule $module;

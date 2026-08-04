@@ -81,22 +81,10 @@ class RetractationModule extends AbstractModule {
         ];
     }
 
-    private static function sanitize_hex_color(string $hex, string $fallback = '#0F766E'): string {
-        $hex = trim($hex);
-        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $hex)) {
-            return strtolower($hex);
-        }
-        return $fallback;
-    }
-
     public function render_woocommerce_missing_notice(): void {
         echo '<div class="notice notice-warning"><p>';
         esc_html_e('Le module Rétractation de WeRocket Tools nécessite WooCommerce 8.2+.', 'werocket-tools');
         echo '</p></div>';
     }
 
-    /** Appelé à la désactivation du plugin. */
-    public static function on_plugin_deactivate(): void {
-        flush_rewrite_rules();
-    }
 }

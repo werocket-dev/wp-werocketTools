@@ -144,9 +144,6 @@ class RestApi {
     }
 
     public function get_modules(WP_REST_Request $request): WP_REST_Response {
-        $options = get_option('werocket_tools_options', []);
-        $active_modules = $options['active_modules'] ?? [];
-
         $modules = [];
         foreach ($this->module_manager->get_all_modules() as $module) {
             $modules[] = [
@@ -154,7 +151,7 @@ class RestApi {
                 'name'        => $module->get_name(),
                 'description' => $module->get_description(),
                 'icon'        => $module->get_icon(),
-                'active'      => !empty($active_modules[$module->get_id()]),
+                'active'      => $this->module_manager->is_module_active($module->get_id()),
             ];
         }
 

@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import {
-  IconLoader2, IconSettings, IconShieldCheck, IconBell, IconExternalLink,
+  IconSettings, IconShieldCheck, IconBell, IconExternalLink,
   IconClipboardList, IconCode, IconAlertTriangle, IconPalette, IconPhoto, IconTrash,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { Spinner } from '../components/Spinner'
 import { openMediaPicker } from '@/lib/wp-media'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import type { RetractationSettings as TRetractationSettings } from '@/lib/types'
@@ -375,14 +376,6 @@ function LogoPicker({
           </Button>
         </div>
       </div>
-    </div>
-  )
-}
-
-function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-      <IconLoader2 size={20} className="animate-spin" /> Chargement...
     </div>
   )
 }

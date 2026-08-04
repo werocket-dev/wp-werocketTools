@@ -21,9 +21,8 @@ class SireneClient {
             return null;
         }
 
-        if (!self::luhn_check($digits)) {
-            // Certains SIREN ne respectent pas Luhn (ex: La Poste 356000000) → on tente quand même.
-        }
+        // Pas de contrôle Luhn : certains SIREN valides ne le respectent pas
+        // (ex. La Poste 356000000). On laisse l'API Sirene arbitrer.
 
         $cache_key = 'werocket_sirene_' . $digits;
         $cached = get_transient($cache_key);
@@ -126,21 +125,4 @@ class SireneClient {
         ];
     }
 
-    /**
-     * Vérifie la validité Luhn d'un SIREN/SIRET.
-     */
-    public static function luhn_check(string $digits): bool {
-        if (!ctype_digit($digits)) return false;
-        $sum = 0;
-        $len = strlen($digits);
-        for ($i = 0; $i < $len; $i++) {
-            $d = (int) $digits[$len - 1 - $i];
-            if ($i % 2 === 1) {
-                $d *= 2;
-                if ($d > 9) $d -= 9;
-            }
-            $sum += $d;
-        }
-        return $sum % 10 === 0;
-    }
 }

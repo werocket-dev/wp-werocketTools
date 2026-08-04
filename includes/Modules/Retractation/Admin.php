@@ -41,7 +41,6 @@ class Admin {
             return;
         }
 
-        require_once __DIR__ . '/ListTable.php';
         $list = new ListTable($this->repository);
         $list->prepare_items();
 

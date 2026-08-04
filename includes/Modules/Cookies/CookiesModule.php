@@ -837,21 +837,4 @@ klaroConfig.callback = function(consent, service) {
         return $formatted;
     }
 
-    /**
-     * Get available purposes for settings page
-     */
-    public function get_available_purposes(): array {
-        $settings = $this->get_settings();
-        return $settings['purposes'] ?? [];
-    }
-
-    /**
-     * Get enabled services for settings page
-     */
-    public function get_enabled_services(): array {
-        $settings = $this->get_settings();
-        return array_filter($settings['services'] ?? [], function($s) {
-            return !empty($s['enabled']);
-        });
-    }
 }

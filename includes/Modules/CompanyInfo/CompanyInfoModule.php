@@ -65,6 +65,12 @@ class CompanyInfoModule extends AbstractModule {
             throw $e; // remonte au handler REST qui le formate en JSON
         }
 
+        // Le parent invalide son cache de settings bruts ; celui des champs
+        // calculés (logo_url, fallbacks légaux) est le nôtre. Sans ça, la
+        // synchro CPT juste en dessous réécrirait les valeurs d'avant le save
+        // (sanitize_settings appelle get_settings() en amont).
+        $this->enriched_cache = null;
+
         if ($result) {
             try {
                 Cpt::sync_from_settings($this->get_settings());
@@ -136,8 +142,8 @@ class CompanyInfoModule extends AbstractModule {
         $current = $this->get_settings();
 
         $sanitized = [
-            'siren'           => $this->sanitize_digits($data['siren'] ?? '', 9),
-            'siret'           => $this->sanitize_digits($data['siret'] ?? '', 14),
+            'siren'           => $this->sanitize_digits($data['siren'] ?? ''),
+            'siret'           => $this->sanitize_digits($data['siret'] ?? ''),
             'name'            => sanitize_text_field((string) ($data['name'] ?? '')),
             'commercial_name' => sanitize_text_field((string) ($data['commercial_name'] ?? '')),
             'legal_form'      => sanitize_text_field((string) ($data['legal_form'] ?? '')),
@@ -162,8 +168,8 @@ class CompanyInfoModule extends AbstractModule {
             'login_show_logo' => !array_key_exists('login_show_logo', $data) ? true : !empty($data['login_show_logo']),
             'login_cover_id'  => absint($data['login_cover_id'] ?? 0),
             'login_logo_size' => max(32, min(160, absint($data['login_logo_size'] ?? 64))),
-            'login_button_bg_color'   => $this->sanitize_optional_hex($data['login_button_bg_color'] ?? ''),
-            'login_button_text_color' => $this->sanitize_optional_hex($data['login_button_text_color'] ?? ''),
+            'login_button_bg_color'   => self::sanitize_hex_color($data['login_button_bg_color'] ?? ''),
+            'login_button_text_color' => self::sanitize_hex_color($data['login_button_text_color'] ?? ''),
 
             'legal_mentions'  => $this->safe_kses($data['legal_mentions'] ?? $current['legal_mentions'] ?? ''),
             'legal_privacy'   => $this->safe_kses($data['legal_privacy']  ?? $current['legal_privacy']  ?? ''),
@@ -189,19 +195,8 @@ class CompanyInfoModule extends AbstractModule {
         }
     }
 
-    /** '' = valeur par défaut (pas d'override), sinon hex valide obligatoire. */
-    private function sanitize_optional_hex(mixed $value): string {
-        $value = trim((string) $value);
-        if ($value === '') {
-            return '';
-        }
-        return sanitize_hex_color($value) ?: '';
-    }
-
-    private function sanitize_digits(string $value, int $expected_length): string {
-        $digits = preg_replace('/\D/', '', $value);
-        if ($digits === '') return '';
-        return strlen($digits) === $expected_length ? $digits : $digits;
+    private function sanitize_digits(string $value): string {
+        return (string) preg_replace('/\D/', '', $value);
     }
 
     /**
@@ -254,7 +249,18 @@ class CompanyInfoModule extends AbstractModule {
      * payload de sanitize_settings(), donc ré-écrire dessus depuis l'UI
      * n'a aucun effet (recalculé à chaque get).
      */
+    /**
+     * Cache des settings enrichis. Le parent ne mémoïse que les settings bruts :
+     * sans ce cache, chaque shortcode [company_info] d'une page relançait les
+     * deux résolutions d'attachment et la lecture des templates légaux.
+     */
+    private ?array $enriched_cache = null;
+
     public function get_settings(): array {
+        if ($this->enriched_cache !== null) {
+            return $this->enriched_cache;
+        }
+
         $settings = parent::get_settings();
 
         $settings['logo_url']        = $this->resolve_attachment_url((int) ($settings['logo_id'] ?? 0));
@@ -269,7 +275,7 @@ class CompanyInfoModule extends AbstractModule {
             }
         }
 
-        return $settings;
+        return $this->enriched_cache = $settings;
     }
 
     private function resolve_attachment_url(int $attachment_id): string {

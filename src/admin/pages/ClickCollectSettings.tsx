@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import {
-  IconLoader2, IconMapPin, IconClock, IconSettings, IconPlus, IconTrash,
+  IconMapPin, IconClock, IconSettings, IconPlus, IconTrash,
   IconBuildingStore, IconCalendarTime, IconAlertCircle, IconEye, IconPalette,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { Spinner } from '../components/Spinner'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import type {
   ClickCollectSettings as TClickCollectSettings, ClickCollectLocation,
@@ -645,12 +646,4 @@ function hexAlpha(hex: string, alpha: number): string {
   const g = parseInt(full.slice(2, 4), 16)
   const b = parseInt(full.slice(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
-
-function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-      <IconLoader2 size={20} className="animate-spin" /> Chargement...
-    </div>
-  )
 }

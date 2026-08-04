@@ -10,6 +10,7 @@
 
 namespace WeRocket\Tools\Modules\CompanyInfo;
 
+use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -59,7 +60,11 @@ class RestApi {
         ], 200);
     }
 
-    public function require_admin(): bool {
-        return current_user_can('manage_options');
+    /** Même contrat d'erreur que Admin\RestApi::require_admin(). */
+    public function require_admin(): bool|WP_Error {
+        if (!current_user_can('manage_options')) {
+            return new WP_Error('rest_forbidden', __('Permission refusée', 'werocket-tools'), ['status' => 403]);
+        }
+        return true;
     }
 }

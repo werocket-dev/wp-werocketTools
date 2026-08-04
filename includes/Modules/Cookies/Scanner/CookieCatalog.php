@@ -493,20 +493,31 @@ class CookieCatalog {
         foreach (self::all() as $service_id => $service) {
             foreach ($service['cookies'] ?? [] as $pattern) {
                 if (self::pattern_matches($pattern, $cookie_name)) {
-                    return [
-                        'service_id'      => $service_id,
-                        'title'           => $service['title'],
-                        'provider'        => $service['provider'],
-                        'purpose'         => $service['purpose'],
-                        'description'     => $service['description'],
-                        'required'        => !empty($service['required']),
-                        'matched_pattern' => $pattern,
-                    ];
+                    return self::build_match($service_id, $service, $pattern);
                 }
             }
         }
 
         return null;
+    }
+
+    /**
+     * Forme canonique d'un résultat de match, partagée par les trois entrées
+     * (nom de cookie, clé de storage, domaine tiers).
+     *
+     * @param array<string,mixed> $service
+     * @return array<string,mixed>
+     */
+    private static function build_match(string $service_id, array $service, string $matched_pattern): array {
+        return [
+            'service_id'      => $service_id,
+            'title'           => $service['title'],
+            'provider'        => $service['provider'],
+            'purpose'         => $service['purpose'],
+            'description'     => $service['description'],
+            'required'        => !empty($service['required']),
+            'matched_pattern' => $matched_pattern,
+        ];
     }
 
     /**
@@ -522,15 +533,7 @@ class CookieCatalog {
             $patterns = array_merge($service['storage'] ?? [], $service['cookies'] ?? []);
             foreach ($patterns as $pattern) {
                 if (self::pattern_matches($pattern, $key)) {
-                    return [
-                        'service_id'      => $service_id,
-                        'title'           => $service['title'],
-                        'provider'        => $service['provider'],
-                        'purpose'         => $service['purpose'],
-                        'description'     => $service['description'],
-                        'required'        => !empty($service['required']),
-                        'matched_pattern' => $pattern,
-                    ];
+                    return self::build_match($service_id, $service, $pattern);
                 }
             }
         }
@@ -550,15 +553,7 @@ class CookieCatalog {
             foreach ($service['domains'] ?? [] as $known) {
                 $known = strtolower($known);
                 if ($domain === $known || str_ends_with($domain, '.' . $known)) {
-                    return [
-                        'service_id'      => $service_id,
-                        'title'           => $service['title'],
-                        'provider'        => $service['provider'],
-                        'purpose'         => $service['purpose'],
-                        'description'     => $service['description'],
-                        'required'        => !empty($service['required']),
-                        'matched_pattern' => $known,
-                    ];
+                    return self::build_match($service_id, $service, $known);
                 }
             }
         }
