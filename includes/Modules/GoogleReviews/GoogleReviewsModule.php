@@ -13,6 +13,11 @@ class GoogleReviewsModule extends AbstractModule {
     public const CRON_HOOK = 'werocket_google_reviews_weekly_sync';
     public const LAST_SYNC_OPTION = 'werocket_google_reviews_last_sync';
     public const META_OPTION = 'werocket_google_reviews_meta';
+    /** Catalogue d'avis accumulé au fil des synchronisations (cf. merge_into_store). */
+    public const STORE_OPTION = 'werocket_google_reviews_store';
+    private const STORE_MAX = 100;
+    /** Borne haute du réglage « Nombre d'avis » (alignée sur l'UI admin). */
+    public const MAX_REVIEWS_COUNT = 20;
 
     protected string $id = 'google_reviews';
     protected string $name = 'Avis Google';
@@ -154,7 +159,7 @@ class GoogleReviewsModule extends AbstractModule {
             'google_api_key' => $api_key,
             'template' => $template,
             'display_style' => sanitize_key($data['display_style'] ?? 'grid'),
-            'reviews_count' => absint($data['reviews_count'] ?? 5),
+            'reviews_count' => max(1, min(self::MAX_REVIEWS_COUNT, absint($data['reviews_count'] ?? 5))),
             'min_rating' => absint($data['min_rating'] ?? 4),
             'show_rating' => !empty($data['show_rating']),
             'show_date' => !empty($data['show_date']),
@@ -289,11 +294,12 @@ class GoogleReviewsModule extends AbstractModule {
 
         if (!empty($settings['google_place_id']) && !empty($settings['google_api_key'])) {
             $result = $this->call_google_api($settings);
-            $reviews = is_wp_error($result) ? [] : $result;
+            // Échec API : on sert le catalogue accumulé plutôt qu'une page vide
+            $reviews = is_wp_error($result) ? $this->get_store_reviews($settings['google_place_id']) : $result;
         }
 
         if (!empty($reviews)) {
-            set_transient($cache_key, $reviews, $settings['cache_duration']);
+            set_transient($cache_key, $reviews, (int) ($settings['cache_duration'] ?? 3600));
         }
 
         return $reviews;
@@ -346,13 +352,56 @@ class GoogleReviewsModule extends AbstractModule {
     }
 
     /**
-     * @return array|\WP_Error Liste d'avis, ou WP_Error détaillant l'échec
-     *                         (réseau, HTTP, ou status Google ≠ OK).
+     * Récupère les avis Google et les fusionne dans le catalogue persistant.
+     *
+     * L'API Place Details ne renvoie jamais plus de 5 avis par appel. Pour
+     * dépasser cette limite, on interroge les deux tris disponibles
+     * (« most_relevant » puis « newest », jusqu'à 10 avis distincts) et on
+     * accumule le résultat dans STORE_OPTION d'une synchronisation à l'autre :
+     * le catalogue s'enrichit au fil des semaines et le réglage « Nombre
+     * d'avis » peut ainsi réellement dépasser 5.
+     *
+     * @return array|\WP_Error Catalogue complet (trié du plus récent au plus
+     *                         ancien), ou WP_Error détaillant l'échec du
+     *                         premier appel (réseau, HTTP, status Google ≠ OK).
      */
     private function call_google_api(array $settings) {
+        $primary = $this->request_place_details($settings, 'most_relevant');
+
+        if (is_wp_error($primary)) {
+            return $primary;
+        }
+
+        // Note globale + total d'avis pour le badge [werocket_reviews_badge]
+        if (isset($primary['rating'])) {
+            update_option(self::META_OPTION, [
+                'rating'  => round((float) $primary['rating'], 1),
+                'total'   => (int) ($primary['user_ratings_total'] ?? 0),
+                'updated' => time(),
+            ]);
+        }
+
+        $fetched = $primary['reviews'] ?? [];
+
+        // Second tri : optionnel, un échec ici ne doit pas faire perdre les 5 premiers
+        $newest = $this->request_place_details($settings, 'newest');
+        if (!is_wp_error($newest) && !empty($newest['reviews'])) {
+            $fetched = array_merge($fetched, $newest['reviews']);
+        }
+
+        return $this->merge_into_store((string) $settings['google_place_id'], $fetched);
+    }
+
+    /**
+     * Un appel Place Details pour un tri donné.
+     *
+     * @return array|\WP_Error Le nœud `result` de la réponse Google.
+     */
+    private function request_place_details(array $settings, string $sort) {
         $url = add_query_arg([
             'place_id' => $settings['google_place_id'],
             'fields' => 'reviews,rating,user_ratings_total',
+            'reviews_sort' => $sort,
             'language' => substr(get_locale(), 0, 2) ?: 'fr',
             'key' => $settings['google_api_key'],
         ], 'https://maps.googleapis.com/maps/api/place/details/json');
@@ -402,15 +451,63 @@ class GoogleReviewsModule extends AbstractModule {
             return new \WP_Error('google_api_' . strtolower($status), $message);
         }
 
-        // Note globale + total d'avis pour le badge [werocket_reviews_badge]
-        if (isset($body['result']['rating'])) {
-            update_option(self::META_OPTION, [
-                'rating'  => round((float) $body['result']['rating'], 1),
-                'total'   => (int) ($body['result']['user_ratings_total'] ?? 0),
-                'updated' => time(),
-            ]);
+        return is_array($body['result'] ?? null) ? $body['result'] : [];
+    }
+
+    /**
+     * Fusionne des avis fraîchement récupérés dans le catalogue persistant.
+     *
+     * Google n'autorise qu'un avis par utilisateur et par lieu : la clé de
+     * dédoublonnage est donc l'auteur (author_url, sinon author_name). Un avis
+     * réédité remplace l'ancien. Le catalogue est trié du plus récent au plus
+     * ancien et borné à STORE_MAX. Un changement de Place ID le réinitialise.
+     *
+     * @return array Catalogue fusionné.
+     */
+    private function merge_into_store(string $place_id, array $fetched): array {
+        $indexed = [];
+
+        foreach ($this->get_store_reviews($place_id) as $review) {
+            $indexed[$this->review_key($review)] = $review;
         }
 
-        return $body['result']['reviews'] ?? [];
+        foreach ($fetched as $review) {
+            if (!is_array($review) || !isset($review['rating'])) {
+                continue;
+            }
+            $key = $this->review_key($review);
+            $existing = $indexed[$key] ?? null;
+            if ($existing === null || (int) ($review['time'] ?? 0) >= (int) ($existing['time'] ?? 0)) {
+                $indexed[$key] = $review;
+            }
+        }
+
+        $merged = array_values($indexed);
+        usort($merged, static fn(array $a, array $b): int => (int) ($b['time'] ?? 0) <=> (int) ($a['time'] ?? 0));
+        $merged = array_slice($merged, 0, self::STORE_MAX);
+
+        update_option(self::STORE_OPTION, [
+            'place_id' => $place_id,
+            'reviews'  => $merged,
+            'updated'  => time(),
+        ], false);
+
+        return $merged;
+    }
+
+    /** Avis du catalogue persistant pour ce Place ID (vide si autre lieu ou jamais synchronisé). */
+    private function get_store_reviews(string $place_id): array {
+        $store = get_option(self::STORE_OPTION, null);
+
+        if (!is_array($store) || ($store['place_id'] ?? null) !== $place_id || !is_array($store['reviews'] ?? null)) {
+            return [];
+        }
+
+        return $store['reviews'];
+    }
+
+    private function review_key(array $review): string {
+        $author = !empty($review['author_url']) ? (string) $review['author_url'] : (string) ($review['author_name'] ?? '');
+        return md5($author !== '' ? $author : wp_json_encode($review));
     }
 }

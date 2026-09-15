@@ -99,7 +99,7 @@ export function ReviewsSettings() {
       const result = await api.post<SyncStatus>('/reviews/refresh', {})
       setSyncStatus(result)
       if (result.last_sync?.success) {
-        toast.success(`Avis synchronisés (${result.last_sync.count} avis récupérés)`)
+        toast.success(`Avis synchronisés (${result.last_sync.count} avis au catalogue)`)
         setPreviewRefreshKey(k => k + 1)
       } else {
         toast.error(result.last_sync?.error || 'Échec de la synchronisation')
@@ -157,7 +157,10 @@ export function ReviewsSettings() {
             <CardDescription>Paramètres de rendu des avis</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Field label="Nombre d'avis">
+            <Field
+              label="Nombre d'avis"
+              hint="Google ne fournit que 10 avis par synchronisation. Les avis sont conservés d'une synchro à l'autre : le catalogue s'enrichit avec le temps jusqu'à atteindre ce nombre."
+            >
               <Input {...register('reviews_count', { valueAsNumber: true })} type="number" min={1} max={20} />
             </Field>
             <Field label="Note minimale">
@@ -305,11 +308,12 @@ function SecretInput({
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
+      {hint && <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>}
     </div>
   )
 }
@@ -350,7 +354,7 @@ function SyncBlock({
                 <IconCircleCheck size={14} className="text-primary" />
                 <span className="font-medium">Dernière synchro :</span>
                 <span className="text-muted-foreground" title={formatAbsolute(last.timestamp)}>
-                  {formatRelative(last.timestamp)} · {last.count} avis
+                  {formatRelative(last.timestamp)} · {last.count} avis au catalogue
                 </span>
               </span>
             ) : (
