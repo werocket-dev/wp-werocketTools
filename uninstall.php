@@ -12,6 +12,7 @@
  *   - werocket_tools_options              (modules actifs)
  *   - werocket_cookies_settings           (bandeau cookies)
  *   - werocket_google_reviews_settings    (avis Google)
+ *   - werocket_google_reviews_store       (catalogue d'avis accumulé au fil des synchros)
  *   - werocket_retractation_settings      (formulaire rétractation)
  *   - werocket_click_collect_settings     (clic & collect)
  *
