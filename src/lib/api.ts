@@ -38,7 +38,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new Error(err?.message ?? `HTTP ${res.status}`)
   }
-  return res.json()
+  // Une notice PHP affichée (WP_DEBUG_DISPLAY) ou un plugin qui écrit dans la
+  // sortie corrompt le JSON : on remonte une erreur lisible plutôt que le
+  // « Unexpected token < » opaque de res.json().
+  const text = await res.text()
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new Error(
+      `Réponse invalide du serveur sur ${path} (HTTP ${res.status}) : sortie PHP parasite (notice/warning) ou plugin tiers qui altère l'API REST.`
+    )
+  }
 }
 
 export const api = {

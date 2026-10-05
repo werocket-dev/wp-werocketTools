@@ -11,7 +11,7 @@ toujours `curl -k` / `--ignore-certificate-errors`).
 ## Setup
 
 ```bash
-npm run build     # obligatoire : PHP lit dist/.vite/manifest.json
+npm run build     # obligatoire : PHP lit dist/manifest.json
 ```
 
 Sans build après une modif de `src/`, l'app sert les anciens assets.
