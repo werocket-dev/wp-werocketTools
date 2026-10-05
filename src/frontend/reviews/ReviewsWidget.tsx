@@ -4,6 +4,7 @@ import { TEMPLATES } from './templates'
 import { ReviewsLayout } from './layout'
 import type { Review, ReviewsSettings, ReviewTemplate } from '@/lib/types'
 import { fetchReviews } from './reviews-api'
+import { selectReviews } from './select'
 
 interface Props {
   count: number
@@ -19,9 +20,8 @@ export function ReviewsWidget({ count, displayStyle, templateOverride }: Props) 
   useEffect(() => {
     fetchReviews()
       .then(({ reviews: all, settings: s }) => {
-        const minRating = s.min_rating ?? 4
         setSettings(s)
-        setReviews(all.filter(r => r.rating >= minRating).slice(0, count))
+        setReviews(selectReviews(all, s, count))
       })
       .catch(() => setReviews([]))
       .finally(() => setLoading(false))

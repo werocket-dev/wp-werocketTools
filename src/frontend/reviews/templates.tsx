@@ -21,6 +21,7 @@ const V = {
   cardBg: 'var(--wr-card-bg, #FFFFFF)',
   star: `var(--wr-star-color, ${G.yellow})`,
   avatar: 'var(--wr-avatar-size, 40px)',
+  border: `var(--wr-card-border, ${G.border})`,
 } as const
 
 export interface TemplateProps {
@@ -70,7 +71,7 @@ function pickAvatarColor(name: string): [string, string] {
   return AVATAR_PALETTE[code % AVATAR_PALETTE.length]
 }
 
-function Avatar({ review, size = 40 }: { review: Review; size?: number }) {
+export function Avatar({ review, size = 40 }: { review: Review; size?: number }) {
   // --wr-avatar-size (réglage global) prime sur la taille par défaut du template
   const dim = {
     width: `var(--wr-avatar-size, ${size}px)`,
@@ -177,7 +178,7 @@ export function MinimalCard({ review, settings }: TemplateProps) {
   return (
     <div
       className="py-5 first:pt-0 last:pb-0 border-b last:border-0"
-      style={{ borderColor: G.border }}
+      style={{ borderColor: V.border }}
     >
       <div className="flex items-center gap-3 mb-2">
         {settings.show_avatar !== false && <Avatar review={review} size={36} />}
@@ -216,7 +217,7 @@ export function ClassicCard({ review, settings }: TemplateProps) {
       className="h-full flex flex-col"
       style={{
         backgroundColor: V.cardBg,
-        border: `1px solid ${G.border}`,
+        border: `1px solid ${V.border}`,
         padding: 'var(--wr-card-padding, 20px)',
         borderRadius: 'var(--wr-card-radius, 12px)',
         boxShadow: 'var(--wr-card-shadow, 0 1px 2px rgba(60, 64, 67, 0.06))',
@@ -254,7 +255,7 @@ export function ClassicCard({ review, settings }: TemplateProps) {
       {badge && (
         <div
           className="mt-4 pt-3"
-          style={{ borderTop: `1px solid ${G.border}` }}
+          style={{ borderTop: `1px solid ${V.border}` }}
         >
           <PostedOnGoogle small />
         </div>
@@ -297,7 +298,7 @@ export function CardCard({ review, settings }: TemplateProps) {
 
       <div
         className="relative flex items-center gap-3 mt-5 pt-4"
-        style={{ borderTop: `1px solid ${G.border}` }}
+        style={{ borderTop: `1px solid ${V.border}` }}
       >
         {settings.show_avatar !== false && <Avatar review={review} size={40} />}
         <div className="min-w-0 flex-1">
@@ -338,7 +339,7 @@ export function QuoteCard({ review, settings }: TemplateProps) {
       className="relative h-full flex flex-col items-center text-center overflow-hidden"
       style={{
         background: 'var(--wr-card-bg, linear-gradient(160deg, #F8F9FA 0%, #FFFFFF 100%))',
-        border: `1px solid ${G.border}`,
+        border: `1px solid ${V.border}`,
         padding: 'var(--wr-card-padding, 28px)',
         borderRadius: 'var(--wr-card-radius, 24px)',
         boxShadow: 'var(--wr-card-shadow, none)',
@@ -391,7 +392,7 @@ export function GoogleCard({ review, settings }: TemplateProps) {
       className="h-full flex flex-col overflow-hidden"
       style={{
         backgroundColor: V.cardBg,
-        border: `1px solid ${G.border}`,
+        border: `1px solid ${V.border}`,
         borderRadius: 'var(--wr-card-radius, 12px)',
         boxShadow: 'var(--wr-card-shadow, none)',
       }}
@@ -400,7 +401,7 @@ export function GoogleCard({ review, settings }: TemplateProps) {
         className="flex items-center justify-between py-3"
         style={{
           backgroundColor: G.bg,
-          borderBottom: `1px solid ${G.border}`,
+          borderBottom: `1px solid ${V.border}`,
           paddingLeft: 'var(--wr-card-padding, 20px)',
           paddingRight: 'var(--wr-card-padding, 20px)',
         }}
@@ -504,7 +505,7 @@ const ThumbBar = ({ w = '100%' }: { w?: string }) => (
 export const TEMPLATE_META: Record<ReviewTemplate, TemplateMeta> = {
   minimal: {
     label: 'Minimal',
-    description: 'Épuré, sans card',
+    description: 'Épuré, sans carte',
     thumbnail: (
       <div className="w-full h-full flex flex-col justify-center gap-1.5 p-2" style={{ backgroundColor: '#FFFFFF' }}>
         <div className="flex items-center gap-1">
@@ -554,7 +555,7 @@ export const TEMPLATE_META: Record<ReviewTemplate, TemplateMeta> = {
   },
   card: {
     label: 'Premium',
-    description: 'Ombre + guillemet',
+    description: 'Ombre et guillemet',
     thumbnail: (
       <div
         className="relative w-full h-full flex flex-col gap-1 p-2 overflow-hidden"
@@ -605,7 +606,7 @@ export const TEMPLATE_META: Record<ReviewTemplate, TemplateMeta> = {
   },
   google: {
     label: 'Google',
-    description: 'Bandeau + Voir sur Google',
+    description: 'Bandeau et lien vers Google',
     thumbnail: (
       <div
         className="w-full h-full flex flex-col overflow-hidden"

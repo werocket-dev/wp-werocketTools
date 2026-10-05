@@ -27,8 +27,10 @@ Sans build après une modif de `src/`, l'app sert les anciens assets.
 | Admin React | `wp-admin/admin.php?page=werocket-tools&tab=<id>` |
 | Settings / modules | API REST `werocket/v1/*` |
 
-Tabs admin : `dashboard`, `cookies`, `google_reviews`, `retractation`,
+Tabs admin : `dashboard`, `general`, `cookies`, `google_reviews`, `retractation`,
 `click_collect`, `company_info` (le routage lit `?tab=`, cf. `App.tsx:getTab`).
+Sous-sections via `?section=` : `general` → `login` / `menu` ; `google_reviews` →
+`overview` / `connection` / `widget` / `badge` ; `cookies` → onglets (`texts`…).
 
 Point de montage admin : `#werocket-admin-root` (dans le PHP) ; `#werocket-app`
 est le div rendu **par React à l'intérieur** — c'est lui que ciblent les

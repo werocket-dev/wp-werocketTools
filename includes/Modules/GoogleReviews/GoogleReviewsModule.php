@@ -54,6 +54,8 @@ class GoogleReviewsModule extends AbstractModule {
 
     private const TEMPLATES = ['minimal', 'classic', 'card', 'quote', 'google'];
     private const SHADOWS = ['none', 'subtle', 'medium', 'strong'];
+    /** newest : plus récents d'abord ; best : mieux notés d'abord. */
+    private const ORDERS = ['newest', 'best'];
 
     /** Clé API Google Places de l'agence, fournie par défaut sur chaque site. */
     private const DEFAULT_GOOGLE_API_KEY = 'AIzaSyAdbeN4FGLGh4DsP63i5DYyQCsSVQ8Zjsw';
@@ -66,6 +68,7 @@ class GoogleReviewsModule extends AbstractModule {
             'display_style' => 'grid',
             'reviews_count' => 5,
             'min_rating' => 4,
+            'reviews_order' => 'newest',
             'show_rating' => true,
             'show_date' => true,
             'show_avatar' => true,
@@ -84,6 +87,7 @@ class GoogleReviewsModule extends AbstractModule {
             'card_bg_color' => '',
             'text_color' => '',
             'star_color' => '',
+            'card_border_color' => '',
             'avatar_size' => 40,
             'show_google_badge' => true,
 
@@ -161,6 +165,7 @@ class GoogleReviewsModule extends AbstractModule {
             'display_style' => sanitize_key($data['display_style'] ?? 'grid'),
             'reviews_count' => max(1, min(self::MAX_REVIEWS_COUNT, absint($data['reviews_count'] ?? 5))),
             'min_rating' => absint($data['min_rating'] ?? 4),
+            'reviews_order' => in_array($data['reviews_order'] ?? '', self::ORDERS, true) ? $data['reviews_order'] : 'newest',
             'show_rating' => !empty($data['show_rating']),
             'show_date' => !empty($data['show_date']),
             'show_avatar' => !empty($data['show_avatar']),
@@ -179,6 +184,7 @@ class GoogleReviewsModule extends AbstractModule {
             'card_bg_color' => self::sanitize_hex_color($data['card_bg_color'] ?? ''),
             'text_color' => self::sanitize_hex_color($data['text_color'] ?? ''),
             'star_color' => self::sanitize_hex_color($data['star_color'] ?? ''),
+            'card_border_color' => self::sanitize_hex_color($data['card_border_color'] ?? ''),
             'avatar_size' => $avatar_size,
             'show_google_badge' => !empty($data['show_google_badge']),
 
@@ -318,6 +324,7 @@ class GoogleReviewsModule extends AbstractModule {
                 'count'     => 0,
                 'timestamp' => time(),
                 'error'     => __('Place ID ou clé API Google Places manquant.', 'werocket-tools'),
+                'code'      => 'missing_credentials',
             ];
         }
 
@@ -331,6 +338,9 @@ class GoogleReviewsModule extends AbstractModule {
             'count'     => is_wp_error($reviews) ? 0 : count($reviews),
             'timestamp' => time(),
             'error'     => is_wp_error($reviews) ? $reviews->get_error_message() : null,
+            // Code machine (google_api_request_denied, http_error…) : l'admin
+            // en déduit le diagnostic à afficher.
+            'code'      => is_wp_error($reviews) ? $reviews->get_error_code() : null,
         ];
 
         if (!is_wp_error($reviews) && !empty($reviews)) {
@@ -340,6 +350,33 @@ class GoogleReviewsModule extends AbstractModule {
         update_option(self::LAST_SYNC_OPTION, $result);
 
         return $result;
+    }
+
+    /** Catalogue des avis conservés pour le Place ID courant (plus récents d'abord). */
+    public function get_catalog(): array {
+        return $this->get_store_reviews((string) ($this->get_settings()['google_place_id'] ?? ''));
+    }
+
+    /**
+     * Teste des identifiants sans rien enregistrer (ni réglages, ni catalogue).
+     *
+     * @return array{success: bool, code: ?string, error: ?string, rating: ?float, total: ?int}
+     */
+    public function test_connection(string $place_id, string $api_key): array {
+        if ($place_id === '' || $api_key === '') {
+            return ['success' => false, 'code' => 'missing_credentials', 'error' => __('Place ID ou clé API Google Places manquant.', 'werocket-tools'), 'rating' => null, 'total' => null];
+        }
+        $result = $this->request_place_details(['google_place_id' => $place_id, 'google_api_key' => $api_key], 'most_relevant');
+        if (is_wp_error($result)) {
+            return ['success' => false, 'code' => $result->get_error_code(), 'error' => $result->get_error_message(), 'rating' => null, 'total' => null];
+        }
+        return [
+            'success' => true,
+            'code'    => null,
+            'error'   => null,
+            'rating'  => isset($result['rating']) ? round((float) $result['rating'], 1) : null,
+            'total'   => isset($result['user_ratings_total']) ? (int) $result['user_ratings_total'] : null,
+        ];
     }
 
     public function get_last_sync(): ?array {

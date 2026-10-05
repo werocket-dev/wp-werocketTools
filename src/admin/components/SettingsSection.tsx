@@ -37,12 +37,14 @@ interface RowProps {
   description?: React.ReactNode
   checked: boolean
   onCheckedChange: (checked: boolean) => void
+  /** Ex. « px-0 pb-0 » dans une section déjà paddée */
+  className?: string
 }
 
 /** Ligne titre + description + switch, séparée par une bordure haute. */
-export function SettingSwitchRow({ title, description, checked, onCheckedChange }: RowProps) {
+export function SettingSwitchRow({ title, description, checked, onCheckedChange, className }: RowProps) {
   return (
-    <label className="flex cursor-pointer items-center gap-6 border-t border-border px-6 py-4">
+    <label className={cn('flex cursor-pointer items-center gap-6 border-t border-border px-6 py-4', className)}>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-foreground">{title}</span>
         {description && <span className="mt-[3px] block text-[13px] text-muted-foreground">{description}</span>}

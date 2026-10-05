@@ -55,6 +55,9 @@
     --wp-menu-icon: #a7aaad;
     --wp-menu-heading: #8c8f94;
     --wp-menu-active: #2271b1;
+    /* Fonds simulés des aperçus de widgets (page claire / sombre) */
+    --preview-light: #f8f9fa;
+    --preview-dark: #202124;
     /* Couleurs de marque des groupes de modules */
     --brand-wordpress: #21759b;
     --brand-woocommerce: #7f54b3;
@@ -76,6 +79,8 @@
   --color-wp-menu-icon: var(--wp-menu-icon);
   --color-wp-menu-heading: var(--wp-menu-heading);
   --color-wp-menu-active: var(--wp-menu-active);
+  --color-preview-light: var(--preview-light);
+  --color-preview-dark: var(--preview-dark);
   --color-brand-wordpress: var(--brand-wordpress);
   --color-brand-woocommerce: var(--brand-woocommerce);
 }
@@ -105,6 +110,7 @@
  * className à un Input — s'appliquent alors normalement.
  */
 #werocket-app :is(button, a, p, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd) {
+  font-family: revert-layer;
   font-size: revert-layer;
   font-weight: revert-layer;
   line-height: revert-layer;

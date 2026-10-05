@@ -20,7 +20,7 @@ export function StatusBadge({ tone = 'success', icon, children, className }: {
 }) {
   const t = TONES[tone]
   return (
-    <Badge className={cn('h-[22px] gap-1.5 rounded-full px-2 text-xs font-semibold [&>svg]:size-3!', t.badge, className)}>
+    <Badge className={cn('h-[22px] gap-1.5 rounded-full px-2 text-xs font-semibold transition-none [&>svg]:size-3!', t.badge, className)}>
       {icon ?? <span className={cn('size-1.5 rounded-full', t.dot)} aria-hidden />}
       {children}
     </Badge>

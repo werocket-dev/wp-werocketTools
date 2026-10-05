@@ -314,7 +314,9 @@
 /* ─── Override WP admin a { color: #2271b1; text-decoration: underline } ─── */
 /* Quand un Button shadcn est rendu via asChild sur un <a>, WP admin force la
    couleur de lien et le soulignement, écrasant text-primary-foreground.
-   Re-déclaration unlayered par variant pour restaurer le rendu shadcn. */
+   Re-déclaration unlayered par variant pour restaurer le rendu shadcn — pour
+   les portails Radix uniquement : dans #werocket-app, la neutralisation
+   revert-layer de globals.css laisse les classes du bouton s'appliquer. */
 #werocket-app a[data-slot="button"],
 [data-slot="dialog-content"] a[data-slot="button"] {
   text-decoration: none;
@@ -323,25 +325,19 @@
 [data-slot="dialog-content"] a[data-slot="button"]:hover {
   text-decoration: none;
 }
-#werocket-app [data-slot="button"][data-variant="default"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="default"] {
   color: var(--primary-foreground);
 }
-#werocket-app [data-slot="button"][data-variant="outline"],
-#werocket-app [data-slot="button"][data-variant="ghost"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="outline"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="ghost"] {
   color: var(--foreground);
 }
-#werocket-app [data-slot="button"][data-variant="secondary"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="secondary"] {
   color: var(--secondary-foreground);
 }
-#werocket-app [data-slot="button"][data-variant="destructive"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="destructive"] {
   color: var(--destructive);
 }
-#werocket-app [data-slot="button"][data-variant="link"],
 [data-slot="dialog-content"] [data-slot="button"][data-variant="link"] {
   color: var(--primary);
 }

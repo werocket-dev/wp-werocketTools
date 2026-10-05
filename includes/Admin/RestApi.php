@@ -86,10 +86,17 @@ class RestApi {
             'permission_callback' => [$this, 'require_admin'],
         ]);
 
-        // GET /reviews/sync-status (admin only)
-        register_rest_route($namespace, '/reviews/sync-status', [
+        // GET /reviews/overview (admin only) — synchro, note Google et catalogue
+        register_rest_route($namespace, '/reviews/overview', [
             'methods'             => 'GET',
-            'callback'            => [$this, 'get_sync_status'],
+            'callback'            => [$this, 'get_reviews_overview'],
+            'permission_callback' => [$this, 'require_admin'],
+        ]);
+
+        // POST /reviews/test (admin only) — teste des identifiants sans les enregistrer
+        register_rest_route($namespace, '/reviews/test', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'test_reviews_connection'],
             'permission_callback' => [$this, 'require_admin'],
         ]);
 
@@ -301,7 +308,7 @@ class RestApi {
         ]);
     }
 
-    public function get_sync_status(WP_REST_Request $request): WP_REST_Response|WP_Error {
+    public function get_reviews_overview(WP_REST_Request $request): WP_REST_Response|WP_Error {
         $module = $this->module_manager->get_module('google_reviews');
 
         if (!$module) {
@@ -312,7 +319,23 @@ class RestApi {
         return rest_ensure_response([
             'last_sync'    => $module->get_last_sync(),
             'next_sync_ts' => wp_next_scheduled(\WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule::CRON_HOOK) ?: null,
+            'meta'         => $module->get_meta(),
+            'reviews'      => $module->get_catalog(),
         ]);
+    }
+
+    public function test_reviews_connection(WP_REST_Request $request): WP_REST_Response|WP_Error {
+        $module = $this->module_manager->get_module('google_reviews');
+
+        if (!$module) {
+            return new WP_Error('module_not_found', __('Module non trouvé', 'werocket-tools'), ['status' => 404]);
+        }
+
+        /** @var \WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule $module */
+        return rest_ensure_response($module->test_connection(
+            sanitize_text_field((string) $request->get_param('place_id')),
+            sanitize_text_field((string) $request->get_param('api_key'))
+        ));
     }
 
     // ──────────────────────────────────────────────────────────

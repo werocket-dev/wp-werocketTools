@@ -53,6 +53,8 @@ export interface ReviewsSettings {
   display_style: string
   reviews_count: number
   min_rating: number
+  /** newest : plus récents d'abord ; best : mieux notés d'abord */
+  reviews_order: 'newest' | 'best'
   show_rating: boolean
   show_date: boolean
   show_avatar: boolean
@@ -73,6 +75,7 @@ export interface ReviewsSettings {
   card_bg_color: string
   text_color: string
   star_color: string
+  card_border_color: string
   avatar_size: number
   show_google_badge: boolean
 
@@ -383,3 +386,21 @@ export interface GeneralSettings {
 export type MenuSnapshotItem =
   | { type: 'separator'; slug: string }
   | { type: 'menu'; slug: string; title: string; icon: string; submenus: number }
+
+/** Résultat d'une synchronisation Google (option werocket_google_reviews_last_sync). */
+export interface ReviewsSyncResult {
+  success: boolean
+  count: number
+  timestamp: number
+  error: string | null
+  /** Code machine de l'échec : google_api_request_denied, http_error, missing_credentials… */
+  code?: string | null
+}
+
+/** GET /reviews/overview */
+export interface ReviewsOverview {
+  last_sync: ReviewsSyncResult | null
+  next_sync_ts: number | null
+  meta: ReviewsMeta | null
+  reviews: Review[]
+}

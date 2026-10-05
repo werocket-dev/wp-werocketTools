@@ -6,6 +6,7 @@ import { GlobalSaveButton } from './components/GlobalSaveButton'
 import { PageHeader } from './components/PageHeader'
 import { StatusBadge } from './components/StatusBadge'
 import { SaveProvider } from './context/SaveContext'
+import { PageStatusContext, type PageStatus } from './context/PageStatusContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Dashboard } from './pages/Dashboard'
 import { CookiesSettings } from './pages/CookiesSettings'
@@ -30,6 +31,7 @@ export function App() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [tab, setTab] = useState(getTab)
+  const [pageStatus, setPageStatus] = useState<PageStatus | null>(null)
 
   useEffect(() => {
     api.get<{ modules?: unknown }>('/modules')
@@ -66,6 +68,7 @@ export function App() {
 
   return (
     <SaveProvider>
+      <PageStatusContext.Provider value={setPageStatus}>
       <div id="werocket-app" className="werocket-wrap min-h-[calc(100vh-32px)] bg-background">
         <Header>
           {!loading && <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />}
@@ -92,9 +95,11 @@ export function App() {
                     <PageHeader
                       icon={<ModuleIcon id={currentModule.id} className="size-[22px]" />}
                       title={currentModule.name}
-                      badge={currentModule.active
-                        ? <StatusBadge>Actif</StatusBadge>
-                        : <StatusBadge tone="neutral">Inactif</StatusBadge>}
+                      badge={pageStatus
+                        ? <StatusBadge tone={pageStatus.tone}>{pageStatus.label}</StatusBadge>
+                        : currentModule.active
+                          ? <StatusBadge>Actif</StatusBadge>
+                          : <StatusBadge tone="neutral">Inactif</StatusBadge>}
                       description={currentModule.description}
                       actions={<GlobalSaveButton />}
                     />
@@ -115,6 +120,7 @@ export function App() {
 
         <Toaster richColors position="bottom-right" />
       </div>
+      </PageStatusContext.Provider>
     </SaveProvider>
   )
 }

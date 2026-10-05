@@ -112,7 +112,7 @@ export function GeneralSettings() {
 
   return (
     <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8 lg:flex-row">
-      <SubNav current={section} onChange={changeSection} activeBadges={{ login: saved.login_enabled }} />
+      <SubNav current={section} onChange={changeSection} loginActive={saved.login_enabled} />
       <div className="flex min-w-0 flex-1 flex-col gap-8 2xl:flex-row">
         {section === 'login' ? (
           <>

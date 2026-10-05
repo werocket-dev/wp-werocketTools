@@ -34,6 +34,7 @@ function buildResponsiveCSS(scope: string, settings: Partial<ReviewsSettings>): 
     settings.text_color ? `--wr-text: ${settings.text_color};` : '',
     settings.text_color ? `--wr-text-muted: color-mix(in srgb, ${settings.text_color} 62%, transparent);` : '',
     settings.star_color ? `--wr-star-color: ${settings.star_color};` : '',
+    settings.card_border_color ? `--wr-card-border: ${settings.card_border_color};` : '',
   ].filter(Boolean).join('\n  ')
 
   const block = (cols: number, gapPx: number, paddingPx: number, slidesN: number) => `
