@@ -52,11 +52,24 @@ abstract class AbstractModule implements ModuleInterface {
         $merged = $array1;
 
         foreach ($array2 as $key => $value) {
+            // Valeur enregistrée d'un autre type qu'un défaut tableau (réglage
+            // legacy, option corrompue) : on garde le défaut. Sinon l'UI React
+            // reçoit une chaîne là où elle attend une liste, son `.map()` plante
+            // et l'admin s'affichait en page blanche.
+            if (isset($merged[$key]) && is_array($merged[$key]) && !is_array($value)) {
+                continue;
+            }
+
             if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
                 // Check if it's an indexed array (like services) or associative
                 if ($this->is_indexed_array($value)) {
                     // For indexed arrays, replace entirely
                     $merged[$key] = $value;
+                } elseif ($merged[$key] !== [] && $this->is_indexed_array($merged[$key])) {
+                    // Défaut = liste mais valeur enregistrée à clés non
+                    // séquentielles (ex : élément retiré sans array_values) :
+                    // on réindexe pour que le JSON reste un tableau, pas un objet.
+                    $merged[$key] = array_values($value);
                 } else {
                     // For associative arrays, merge recursively
                     $merged[$key] = $this->array_merge_recursive_distinct($merged[$key], $value);

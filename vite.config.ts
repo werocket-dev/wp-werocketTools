@@ -12,8 +12,14 @@ export default defineConfig({
     tailwindcss(),
     react(),
   ],
+  // Chemins relatifs : les assets (polices Inter…) sont résolus depuis le
+  // fichier qui les référence, quel que soit l'emplacement du plugin. Avec
+  // la base '/' par défaut, le CSS pointait vers /assets/… à la racine du
+  // domaine (404 sur tous les sites).
+  base: './',
   build: {
-    manifest: true,
+    // Hors du dossier caché .vite/ (cf. ViteAssets::manifest()).
+    manifest: 'manifest.json',
     outDir: 'dist',
     rollupOptions: {
       input: {

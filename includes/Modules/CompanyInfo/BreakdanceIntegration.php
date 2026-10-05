@@ -77,31 +77,34 @@ class BreakdanceIntegration {
      */
     private static function make_string_field(string $key, string $label): object {
         return new class($key, $label) extends \Breakdance\DynamicData\StringField {
-            private string $key;
-            private string $label;
+            // Préfixées : une propriété du même nom ajoutée un jour dans
+            // Breakdance\DynamicData\Field avec une visibilité plus large
+            // déclencherait une fatale non rattrapable sur tout le site.
+            private string $wr_key;
+            private string $wr_label;
 
             public function __construct(string $key, string $label) {
-                $this->key   = $key;
-                $this->label = $label;
+                $this->wr_key   = $key;
+                $this->wr_label = $label;
             }
 
-            public function label() {
-                return $this->label;
+            public function label(): string {
+                return $this->wr_label;
             }
 
-            public function category() {
+            public function category(): string {
                 return BreakdanceIntegration::category();
             }
 
-            public function slug() {
-                return 'werocket_company_' . $this->key;
+            public function slug(): string {
+                return 'werocket_company_' . $this->wr_key;
             }
 
             /**
              * @param array<string,mixed> $attributes
              */
             public function handler($attributes): \Breakdance\DynamicData\StringData {
-                $value = self::resolve_value($this->key);
+                $value = self::resolve_value($this->wr_key);
                 return \Breakdance\DynamicData\StringData::fromString($value);
             }
 
@@ -124,15 +127,15 @@ class BreakdanceIntegration {
      */
     private static function make_logo_field(): object {
         return new class extends \Breakdance\DynamicData\ImageField {
-            public function label() {
+            public function label(): string {
                 return 'Logo';
             }
 
-            public function category() {
+            public function category(): string {
                 return BreakdanceIntegration::category();
             }
 
-            public function slug() {
+            public function slug(): string {
                 return 'werocket_company_logo';
             }
 

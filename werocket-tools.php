@@ -21,6 +21,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Garde PHP : le code des modules utilise une syntaxe PHP 8.0 (types union,
+// `mixed`…) qui provoque une Parse error — donc un écran blanc sur tout le
+// site — si l'hébergeur repasse en PHP 7.x après l'activation. On s'arrête
+// avant tout chargement et on prévient l'admin. Ce fichier doit rester
+// compatible PHP 7.x pour que cette garde puisse s'exécuter.
+if (version_compare(PHP_VERSION, '8.0', '<')) {
+    add_action('admin_notices', static function (): void {
+        echo '<div class="notice notice-error"><p>';
+        printf(
+            /* translators: %s: current PHP version */
+            esc_html__('WeRocket Tools nécessite PHP 8.0 ou supérieur (version actuelle : %s). Le plugin est inactif tant que la version PHP n\'est pas mise à jour.', 'werocket-tools'),
+            esc_html(PHP_VERSION)
+        );
+        echo '</p></div>';
+    });
+    return;
+}
+
 // Plugin constants
 define('WEROCKET_TOOLS_VERSION', '1.2.28');
 define('WEROCKET_TOOLS_PLUGIN_DIR', plugin_dir_path(__FILE__));

@@ -24,6 +24,7 @@ class CookiesModule extends AbstractModule {
             add_action('wp_head', [$this, 'render_google_consent_default'], 1);
             add_action('wp_head', [$this, 'render_klaro_config'], 2);
             add_action('wp_head', [$this, 'render_klaro_script'], 3);
+            add_action('wp_footer', [$this, 'render_klaro_container'], 1);
             add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
         }
 
@@ -566,8 +567,17 @@ class CookiesModule extends AbstractModule {
         }, 5);
     }
 
-    public function render_klaro_script(): void {
+    /**
+     * Conteneur Klaro (elementID). Rendu dans le footer : un <div> émis dans
+     * wp_head ferme implicitement le <head> côté navigateur, et toutes les
+     * balises suivantes (meta, styles, scripts SEO…) basculaient dans le body.
+     * klaro.js est en `defer` : il s'exécute après le parsing, le div existe.
+     */
+    public function render_klaro_container(): void {
         echo '<div id="werocket-klaro"></div>' . "\n";
+    }
+
+    public function render_klaro_script(): void {
         ?>
 <style id="werocket-klaro-hide">.klaro .cookie-modal,.klaro .cookie-notice,.klaro .cookie-modal-backdrop{display:none !important}</style>
 <script defer src="https://cdn.kiprotect.com/klaro/v0.7/klaro.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

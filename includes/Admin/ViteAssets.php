@@ -39,14 +39,33 @@ class ViteAssets {
         if (self::$manifest !== null) {
             return self::$manifest;
         }
-        $path = self::dist_path() . '.vite/manifest.json';
-        if (!file_exists($path)) {
+        // dist/manifest.json en priorité : l'ancien emplacement dist/.vite/ est
+        // un dossier caché que les clients FTP, outils de migration et certains
+        // hébergeurs ignorent — le manifest disparaissait alors silencieusement
+        // et l'admin restait blanc. Le second chemin couvre les anciens builds.
+        $path = '';
+        foreach (['manifest.json', '.vite/manifest.json'] as $candidate) {
+            if (is_readable(self::dist_path() . $candidate)) {
+                $path = self::dist_path() . $candidate;
+                break;
+            }
+        }
+        if ($path === '') {
             self::$manifest = [];
             return self::$manifest;
         }
         $decoded = json_decode((string) file_get_contents($path), true);
         self::$manifest = is_array($decoded) ? $decoded : [];
         return self::$manifest;
+    }
+
+    /**
+     * Indique si un entry point peut être chargé (toujours vrai en dev HMR).
+     * Permet d'afficher une erreur explicite plutôt qu'une page blanche
+     * quand dist/ est absent ou incomplet sur le serveur.
+     */
+    public static function is_entry_available(string $entry): bool {
+        return self::is_dev() || isset(self::manifest()['src/' . $entry]);
     }
 
     /**
@@ -83,6 +102,7 @@ class ViteAssets {
         $key = 'src/' . $entry;
 
         if (!isset($manifest[$key])) {
+            error_log(sprintf('[WeRocketTools] Entry Vite introuvable dans le manifest : %s (dist/ absent ou incomplet ?)', $key));
             return;
         }
 
