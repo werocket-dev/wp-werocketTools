@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { IconSettings } from '@tabler/icons-react'
 import { api } from '@/lib/api'
-import { getModuleCategory } from '@/lib/modules'
+import { getModuleCategory, WOO_THEME_VARS } from '@/lib/modules'
 import { ModuleIcon } from '@/lib/module-icons'
 import type { Module } from '@/lib/types'
 
@@ -15,14 +15,6 @@ interface Props {
   onToggle: (id: string, active: boolean) => void
   onNavigate: (tab: string) => void
 }
-
-// #F2EDFF fond de card · #873EFF boutons/switch · override CSS vars shadcn
-const WOO_VARS = {
-  '--card': '#F2EDFF',
-  '--primary': '#873EFF',
-  '--primary-foreground': '#ffffff',
-  '--ring': '#873EFF',
-} as React.CSSProperties
 
 export function ModuleCard({ module, onToggle, onNavigate }: Props) {
   const [loading, setLoading] = useState(false)
@@ -42,7 +34,7 @@ export function ModuleCard({ module, onToggle, onNavigate }: Props) {
   }
 
   return (
-    <div style={isWoo ? WOO_VARS : undefined}>
+    <div style={isWoo ? WOO_THEME_VARS : undefined}>
       <Card className="h-full hover:ring-foreground/10 transition-all">
         <CardHeader>
           <div className="flex items-center gap-3">
