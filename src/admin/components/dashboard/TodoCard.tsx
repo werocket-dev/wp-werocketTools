@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModuleIcon } from '@/lib/module-icons'
 import type { DashboardAlert, Module } from '@/lib/types'
-import { PANEL, ROW_ACTION_BUTTON } from './styles'
+import { PANEL, ROW_ACTION_BUTTON } from '../styles'
 
 interface Props {
   alerts: DashboardAlert[]

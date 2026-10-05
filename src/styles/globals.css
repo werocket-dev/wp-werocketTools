@@ -49,6 +49,12 @@
     --inverse-foreground: #ffffff;
     --inverse-muted-foreground: #a8a29e;
     --inverse-accent: #5eead4;
+    /* Aperçu du menu d'administration (palette par défaut de wp-admin) */
+    --wp-menu: #1d2327;
+    --wp-menu-foreground: #f0f0f1;
+    --wp-menu-icon: #a7aaad;
+    --wp-menu-heading: #8c8f94;
+    --wp-menu-active: #2271b1;
     /* Couleurs de marque des groupes de modules */
     --brand-wordpress: #21759b;
     --brand-woocommerce: #7f54b3;
@@ -65,6 +71,11 @@
   --color-inverse-foreground: var(--inverse-foreground);
   --color-inverse-muted-foreground: var(--inverse-muted-foreground);
   --color-inverse-accent: var(--inverse-accent);
+  --color-wp-menu: var(--wp-menu);
+  --color-wp-menu-foreground: var(--wp-menu-foreground);
+  --color-wp-menu-icon: var(--wp-menu-icon);
+  --color-wp-menu-heading: var(--wp-menu-heading);
+  --color-wp-menu-active: var(--wp-menu-active);
   --color-brand-wordpress: var(--brand-wordpress);
   --color-brand-woocommerce: var(--brand-woocommerce);
 }
@@ -100,5 +111,26 @@
   margin: revert-layer;
   padding: revert-layer;
   text-decoration: revert-layer;
+  box-shadow: revert-layer;
+}
+
+/*
+ * ─── Inputs au style des maquettes ───
+ *
+ * _tw-base.css impose, hors layer, l'apparence shadcn à tous les
+ * input[data-slot="input"] (pour battre forms.css de wp-admin) : leurs
+ * classes Tailwind sont alors ignorées. Avec l'attribut `data-custom`, la
+ * règle se retire (revert-layer) et le className de l'Input s'applique.
+ */
+#werocket-app input[data-slot="input"][data-custom],
+#werocket-app input[data-slot="input"][data-custom]:focus,
+#werocket-app input[data-slot="input"][data-custom]:focus-visible {
+  height: revert-layer;
+  border: revert-layer;
+  border-radius: revert-layer;
+  background-color: revert-layer;
+  padding: revert-layer;
+  font-size: revert-layer;
+  line-height: revert-layer;
   box-shadow: revert-layer;
 }

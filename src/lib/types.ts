@@ -359,3 +359,25 @@ export interface ScanProgressItem {
   cookies_found?: number
   error?: string
 }
+
+export type LoginRedirectMode = '404' | 'home' | 'page'
+
+export type SavedMenuItem =
+  | { type: 'menu'; slug: string; label: string; hidden: boolean }
+  | { type: 'space'; id: string }
+  | { type: 'heading'; id: string; label: string }
+
+export interface GeneralSettings {
+  login_enabled: boolean
+  login_slug: string
+  login_redirect: LoginRedirectMode
+  login_redirect_page: number
+  login_notify: boolean
+  login_keep_session: boolean
+  menu_items: SavedMenuItem[]
+}
+
+/** Menu admin d'origine, capturé côté PHP (MenuCustomizer::snapshot()). */
+export type MenuSnapshotItem =
+  | { type: 'separator'; slug: string }
+  | { type: 'menu'; slug: string; title: string; icon: string; submenus: number }

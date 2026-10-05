@@ -35,6 +35,9 @@ $werocket_assets_ok = \WeRocket\Tools\Admin\ViteAssets::is_entry_available('admi
   data-nonce="<?php echo esc_attr(wp_create_nonce('wp_rest')); ?>"
   data-plugin-url="<?php echo esc_attr(WEROCKET_TOOLS_PLUGIN_URL); ?>"
   data-version="<?php echo esc_attr(WEROCKET_TOOLS_VERSION); ?>"
+  data-home-url="<?php echo esc_attr(home_url('/')); ?>"
+  data-plugin-folder="<?php echo esc_attr(dirname(WEROCKET_TOOLS_PLUGIN_BASENAME)); ?>"
+  data-pretty-permalinks="<?php echo get_option('permalink_structure') ? '1' : '0'; ?>"
 >
   <?php if ($werocket_assets_ok) : ?>
     <div id="werocket-admin-boot-error" class="notice notice-error">
@@ -43,3 +46,6 @@ $werocket_assets_ok = \WeRocket\Tools\Admin\ViteAssets::is_entry_available('admi
     </div>
   <?php endif; ?>
 </div>
+<script type="application/json" id="werocket-menu-snapshot"><?php
+  echo wp_json_encode(\WeRocket\Tools\Modules\General\MenuCustomizer::snapshot(), JSON_HEX_TAG | JSON_HEX_AMP);
+?></script>

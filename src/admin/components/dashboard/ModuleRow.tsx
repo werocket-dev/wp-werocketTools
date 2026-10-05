@@ -7,7 +7,7 @@ import { api } from '@/lib/api'
 import { ModuleIcon } from '@/lib/module-icons'
 import type { Module } from '@/lib/types'
 import { StatusBadge } from '../StatusBadge'
-import { SECONDARY_BUTTON } from './styles'
+import { SECONDARY_BUTTON } from '../styles'
 
 interface Props {
   module: Module

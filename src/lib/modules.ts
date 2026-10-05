@@ -1,6 +1,7 @@
 export type ModuleCategory = 'wordpress' | 'woocommerce'
 
 export const MODULE_CATEGORIES: Record<string, ModuleCategory> = {
+  general: 'wordpress',
   cookies: 'wordpress',
   google_reviews: 'wordpress',
   company_info: 'wordpress',
@@ -23,7 +24,7 @@ export const MODULE_GROUPS: ModuleGroup[] = [
   {
     id: 'wordpress',
     label: 'WordPress',
-    description: 'Conformité, réputation et identité du site',
+    description: 'Administration, conformité, réputation et identité du site',
   },
   {
     id: 'woocommerce',

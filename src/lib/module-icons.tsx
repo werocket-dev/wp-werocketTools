@@ -1,6 +1,7 @@
-import { Building2, Cookie, Puzzle, Star, Store, Undo2, type LucideIcon } from 'lucide-react'
+import { Building2, Cookie, Puzzle, Settings2, Star, Store, Undo2, type LucideIcon } from 'lucide-react'
 
 const MAP: Record<string, LucideIcon> = {
+  general: Settings2,
   cookies: Cookie,
   google_reviews: Star,
   retractation: Undo2,

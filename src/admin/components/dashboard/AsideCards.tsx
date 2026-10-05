@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card'
 import { LINKS } from '@/lib/modules'
 import type { DashboardStatus } from '@/lib/types'
 import { StatusBadge } from '../StatusBadge'
-import { PANEL } from './styles'
+import { PANEL } from '../styles'
 
 const CARD_TITLE = 'text-[13px] font-semibold text-foreground'
 

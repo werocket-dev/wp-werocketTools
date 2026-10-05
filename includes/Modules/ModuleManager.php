@@ -8,6 +8,7 @@ namespace WeRocket\Tools\Modules;
 use WeRocket\Tools\Modules\ClickCollect\ClickCollectModule;
 use WeRocket\Tools\Modules\CompanyInfo\CompanyInfoModule;
 use WeRocket\Tools\Modules\Cookies\CookiesModule;
+use WeRocket\Tools\Modules\General\GeneralModule;
 use WeRocket\Tools\Modules\GoogleReviews\GoogleReviewsModule;
 use WeRocket\Tools\Modules\Retractation\RetractationModule;
 
@@ -20,6 +21,7 @@ class ModuleManager {
     private array $active_modules = [];
 
     public function register_modules(): void {
+        $this->register(new GeneralModule());
         $this->register(new CookiesModule());
         $this->register(new GoogleReviewsModule());
         $this->register(new RetractationModule());

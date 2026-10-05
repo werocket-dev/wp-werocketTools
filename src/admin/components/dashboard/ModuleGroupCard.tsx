@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import type { ModuleCategory, ModuleGroup } from '@/lib/modules'
 import type { DashboardAlert, Module } from '@/lib/types'
 import { ModuleRow } from './ModuleRow'
-import { PANEL } from './styles'
+import { PANEL } from '../styles'
 
 interface Props {
   group: ModuleGroup

@@ -1,6 +1,5 @@
 /*
- * Ajustements des composants shadcn pour la maquette « Werocket — Tableau de
- * bord » : panneaux bordés à 12 px sans ombre et boutons secondaires 8 px, au
+ * Ajustements des composants shadcn pour les maquettes Pencil de l'admin : panneaux bordés à 12 px sans ombre et boutons secondaires 8 px, au
  * lieu des rayons Luma (rounded-4xl) et de l'ombre par défaut. Couleurs :
  * tokens uniquement (cf. palette admin dans styles/globals.css).
  */
@@ -15,3 +14,9 @@ export const SECONDARY_BUTTON =
 /** Button variant="outline" — petite action de ligne (Lier les pages, Relancer…). */
 export const ROW_ACTION_BUTTON =
   'h-[30px] gap-1 rounded-[7px] border-input bg-card px-2.5 text-xs font-semibold text-foreground [&_svg]:text-muted-foreground'
+
+/** Button variant="default" — bouton principal (Enregistrer, Valider…). */
+export const PRIMARY_BUTTON = 'h-9 gap-2 rounded-[8px] px-3.5 text-[13px] font-semibold'
+
+/** Petit bouton icône de ligne (crayon, œil, corbeille). */
+export const ICON_BUTTON = 'size-7 rounded-[6px] text-subtle-foreground hover:text-foreground'

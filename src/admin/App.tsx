@@ -13,6 +13,7 @@ import { ReviewsSettings } from './pages/ReviewsSettings'
 import { RetractationSettings } from './pages/RetractationSettings'
 import { ClickCollectSettings } from './pages/ClickCollectSettings'
 import { CompanyInfoSettings } from './pages/CompanyInfoSettings'
+import { GeneralSettings } from './pages/GeneralSettings'
 import { api } from '@/lib/api'
 import type { Module } from '@/lib/types'
 import { ModuleIcon } from '@/lib/module-icons'
@@ -99,6 +100,7 @@ export function App() {
                     />
                   )}
                   <div className="px-4 pt-7 pb-12 sm:px-8">
+                    {tab === 'general' && <GeneralSettings />}
                     {tab === 'cookies' && <CookiesSettings />}
                     {tab === 'google_reviews' && <ReviewsSettings />}
                     {tab === 'retractation' && <RetractationSettings />}

@@ -11,7 +11,7 @@ import { StatusBadge } from '../components/StatusBadge'
 import { TodoCard } from '../components/dashboard/TodoCard'
 import { ModuleGroupCard } from '../components/dashboard/ModuleGroupCard'
 import { HelpCard, PluginInfoCard, ShopCard } from '../components/dashboard/AsideCards'
-import { PANEL, SECONDARY_BUTTON } from '../components/dashboard/styles'
+import { PANEL, SECONDARY_BUTTON } from '../components/styles'
 
 type FilterCategory = 'all' | ModuleCategory
 
