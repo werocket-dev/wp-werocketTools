@@ -1,10 +1,5 @@
 import { toast } from 'sonner'
-
-function getBootstrap() {
-  const el = document.getElementById('werocket-admin-root')
-  if (!el) throw new Error('werocket-admin-root not found')
-  return el.dataset as { restUrl: string; nonce: string; pluginUrl: string; version: string }
-}
+import { getBootstrap } from './admin-bootstrap'
 
 // Évite les reloads en boucle si plusieurs requêtes échouent en parallèle.
 let reloadingForStaleNonce = false

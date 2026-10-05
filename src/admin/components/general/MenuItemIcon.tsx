@@ -39,9 +39,7 @@ export function MenuItemIcon({ slug, icon, inverse, className }: Props) {
   if (Core) return <Core className={cn('size-[15px]', className)} />
 
   if (icon.startsWith('dashicons-')) {
-    // dashicons.css (wp-admin) fixe largeur, hauteur et taille de police hors
-    // cascade layer : seul un style inline peut les réduire.
-    return <span className={cn('dashicons', icon, className)} style={{ width: 15, height: 15, fontSize: 15 }} aria-hidden />
+    return <span className={cn('dashicons size-[15px] text-[15px]', icon, className)} aria-hidden />
   }
   if (icon.startsWith('data:image') || icon.startsWith('http')) {
     return (

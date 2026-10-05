@@ -6,6 +6,7 @@
 
 namespace WeRocket\Tools\Modules\General;
 
+use WeRocket\Tools\Admin\RestApi as AdminRestApi;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -16,7 +17,7 @@ class RestApi {
     }
 
     public function register_routes(): void {
-        $permission = static fn(): bool => current_user_can('manage_options');
+        $permission = [AdminRestApi::class, 'require_admin'];
 
         register_rest_route('werocket/v1', '/general/login-slug', [
             'methods'             => 'GET',
@@ -38,6 +39,7 @@ class RestApi {
 
         return rest_ensure_response([
             'slug'      => $slug,
+            'url'       => LoginUrl::login_url_for($slug),
             'available' => $reason === '',
             'reason'    => $reason,
         ]);

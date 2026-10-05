@@ -43,11 +43,14 @@ class LoginUrl {
         $instance->hooks();
     }
 
+    /** Début de l'URL de connexion, avant l'adresse : https://site/ ou https://site/? */
+    public static function prefix(?string $scheme = null): string {
+        return get_option('permalink_structure') ? trailingslashit(home_url('', $scheme)) : home_url('?', $scheme);
+    }
+
     /** URL publique de connexion pour une adresse donnée. */
     public static function login_url_for(string $slug, ?string $scheme = null): string {
-        return get_option('permalink_structure')
-            ? trailingslashit(home_url($slug, $scheme))
-            : home_url('?' . $slug, $scheme);
+        return self::prefix($scheme) . $slug . (get_option('permalink_structure') ? '/' : '');
     }
 
     private function hooks(): void {

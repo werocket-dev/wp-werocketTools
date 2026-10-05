@@ -1,3 +1,4 @@
+import { getAdminData } from '@/lib/admin-bootstrap'
 import type { MenuSnapshotItem, SavedMenuItem } from '@/lib/types'
 
 /** Élément affiché dans l'éditeur : données enregistrées + infos d'origine du menu. */
@@ -6,17 +7,11 @@ export type EditorItem =
   | { type: 'space'; id: string }
   | { type: 'heading'; id: string; label: string }
 
-/** Le menu du plugin reste toujours visible : sinon plus d'accès à ces réglages. */
+/** Le menu du plugin reste toujours visible (MenuCustomizer::OWN_SLUG côté PHP). */
 export const OWN_MENU_SLUG = 'werocket-tools'
 
 export function readSnapshot(): MenuSnapshotItem[] {
-  try {
-    const raw = document.getElementById('werocket-menu-snapshot')?.textContent ?? '[]'
-    const data: unknown = JSON.parse(raw)
-    return Array.isArray(data) ? (data as MenuSnapshotItem[]) : []
-  } catch {
-    return []
-  }
+  return getAdminData().general?.menuSnapshot ?? []
 }
 
 /** Équivalent de sanitize_key() côté PHP, pour les identifiants de séparateurs. */
@@ -75,6 +70,17 @@ export function serializeEditorItems(items: EditorItem[]): SavedMenuItem[] {
 
 export function displayName(item: Extract<EditorItem, { type: 'menu' }>): string {
   return item.label || item.title
+}
+
+/** Clé stable d'un élément (React key, édition en cours). */
+export function itemKey(item: EditorItem): string {
+  return item.type === 'menu' ? `menu:${item.slug}` : `${item.type}:${item.id}`
+}
+
+/** Nom d'un élément pour les libellés accessibles. */
+export function describeItem(item: EditorItem): string {
+  if (item.type === 'menu') return displayName(item)
+  return item.type === 'heading' ? `le titre ${item.label}` : 'l\'espace'
 }
 
 /** Sans espaces collés ni en début/fin de liste (wp-admin/includes/menu.php les supprime aussi). */

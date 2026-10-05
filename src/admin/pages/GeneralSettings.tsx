@@ -2,69 +2,71 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import type { GeneralSettings as TGeneralSettings } from '@/lib/types'
+import type { GeneralSettings as TGeneralSettings, SavedMenuItem } from '@/lib/types'
 import { Spinner } from '../components/Spinner'
 import { useRegisterSaveForm } from '../context/SaveContext'
 import { SubNav, type GeneralSection } from '../components/general/SubNav'
-import { LoginUrlAside, LoginUrlSection, loginUrl, type SlugStatus } from '../components/general/LoginUrlSection'
-import { AdminMenuAside, AdminMenuSection } from '../components/general/AdminMenuSection'
+import { LoginUrlAside, LoginUrlSection, type SlugStatus } from '../components/general/LoginUrlSection'
+import { AdminMenuSection } from '../components/general/AdminMenuSection'
+import { AdminMenuAside } from '../components/general/AdminMenuAside'
 import { buildEditorItems, readSnapshot, serializeEditorItems, type EditorItem } from '../components/general/menu-model'
 
 const FORM_ID = 'wr-form-general'
+const NO_ITEMS: SavedMenuItem[] = []
 
 function initialSection(): GeneralSection {
   return new URLSearchParams(window.location.search).get('section') === 'menu' ? 'menu' : 'login'
 }
 
 export function GeneralSettings() {
-  const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState<TGeneralSettings | null>(null)
   const [section, setSection] = useState<GeneralSection>(initialSection)
   const [slugStatus, setSlugStatus] = useState<SlugStatus>({ state: 'idle' })
-  const [menuItems, setMenuItems] = useState<EditorItem[]>([])
   const snapshot = useMemo(readSnapshot, [])
 
   const form = useForm<TGeneralSettings>()
   const { handleSubmit, reset, watch, setValue, formState } = form
   const { setSaving } = useRegisterSaveForm(FORM_ID, formState.isDirty)
   const slug = watch('login_slug') ?? ''
+  const savedMenu = watch('menu_items') ?? NO_ITEMS
+  // L'éditeur se déduit de la valeur du formulaire : une seule source de vérité.
+  const menuItems = useMemo(() => buildEditorItems(snapshot, savedMenu), [snapshot, savedMenu])
 
   function load(settings: TGeneralSettings) {
     reset(settings)
     setSaved(settings)
-    setMenuItems(buildEditorItems(snapshot, settings.menu_items))
   }
 
   useEffect(() => {
-    api.get<{ settings: TGeneralSettings }>('/settings/general')
-      .then(data => load(data.settings))
-      .finally(() => setLoading(false))
+    api.get<{ settings: TGeneralSettings }>('/settings/general').then(data => load(data.settings))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Disponibilité de l'adresse, vérifiée côté serveur après une courte pause de saisie.
   useEffect(() => {
-    if (loading) return
-    if (!slug) {
+    if (!saved || !slug) {
       setSlugStatus({ state: 'idle' })
+      return
+    }
+    // Adresse active : déjà validée par le serveur à l'enregistrement.
+    if (saved.login_enabled && slug === saved.login_slug) {
+      setSlugStatus({ state: 'available', url: saved.login_url })
       return
     }
     setSlugStatus({ state: 'checking' })
     const timer = window.setTimeout(() => {
-      api.get<{ available: boolean; reason: string }>(`/general/login-slug?slug=${encodeURIComponent(slug)}`)
-        .then(r => setSlugStatus(r.available ? { state: 'available' } : { state: 'unavailable', reason: r.reason }))
+      api.get<{ available: boolean; reason: string; url: string }>(`/general/login-slug?slug=${encodeURIComponent(slug)}`)
+        .then(r => setSlugStatus(r.available ? { state: 'available', url: r.url } : { state: 'unavailable', reason: r.reason }))
         .catch(() => setSlugStatus({ state: 'idle' }))
     }, 400)
     return () => window.clearTimeout(timer)
-  }, [slug, loading])
+  }, [slug, saved])
 
   function changeMenu(items: EditorItem[]) {
-    setMenuItems(items)
     setValue('menu_items', serializeEditorItems(items), { shouldDirty: true })
   }
 
   function resetMenu() {
-    setMenuItems(buildEditorItems(snapshot, []))
     setValue('menu_items', [], { shouldDirty: true })
     toast.info('Ordre par défaut rétabli : enregistrez pour l\'appliquer.')
   }
@@ -82,26 +84,22 @@ export function GeneralSettings() {
       changeSection('login')
       return
     }
-    const previous = saved
     setSaving(true)
     try {
-      await api.put('/settings/general', { settings: data })
-      const addressChanged = data.login_enabled
-        && (!previous?.login_enabled || previous.login_slug !== data.login_slug)
+      const { settings } = await api.put<{ settings: TGeneralSettings }>('/settings/general', { settings: data })
+      const addressChanged = settings.login_enabled
+        && (!saved?.login_enabled || saved.login_slug !== settings.login_slug)
 
-      if (addressChanged && !data.login_keep_session) {
+      if (addressChanged && !settings.login_keep_session) {
         // Session fermée côté serveur : on repart de la nouvelle adresse.
         toast.success('Adresse enregistrée. Reconnectez-vous avec la nouvelle adresse…')
-        const target = loginUrl(data.login_slug)
-        const separator = target.includes('?') ? '&' : '?'
-        window.setTimeout(() => {
-          window.location.href = `${target}${separator}redirect_to=${encodeURIComponent(window.location.href)}`
-        }, 1500)
+        const target = new URL(settings.login_url)
+        target.searchParams.set('redirect_to', window.location.href)
+        window.setTimeout(() => { window.location.href = target.toString() }, 1500)
         return
       }
 
-      const fresh = await api.get<{ settings: TGeneralSettings }>('/settings/general')
-      load(fresh.settings)
+      load(settings)
       toast.success(addressChanged ? 'Nouvelle adresse de connexion active' : 'Réglages enregistrés')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Erreur lors de l\'enregistrement')
@@ -110,7 +108,7 @@ export function GeneralSettings() {
     }
   }
 
-  if (loading || !saved) return <Spinner />
+  if (!saved) return <Spinner />
 
   return (
     <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8 lg:flex-row">

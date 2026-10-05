@@ -375,6 +375,8 @@ export interface GeneralSettings {
   login_notify: boolean
   login_keep_session: boolean
   menu_items: SavedMenuItem[]
+  /** Calculée côté serveur à partir de login_slug — lecture seule */
+  login_url: string
 }
 
 /** Menu admin d'origine, capturé côté PHP (MenuCustomizer::snapshot()). */

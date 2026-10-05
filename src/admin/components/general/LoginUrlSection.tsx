@@ -11,29 +11,29 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { api } from '@/lib/api'
+import { getAdminData, getBootstrap } from '@/lib/admin-bootstrap'
 import { copyToClipboard } from '@/lib/clipboard'
 import { cn } from '@/lib/utils'
 import type { GeneralSettings, LoginRedirectMode } from '@/lib/types'
-import { SettingsSection, SettingSwitchRow } from '../SettingsSection'
-import { PANEL, SECONDARY_BUTTON } from '../styles'
+import { PanelTitle, SettingsSection, SettingSwitchRow } from '../SettingsSection'
+import { StatusBadge } from '../StatusBadge'
 
 export type SlugStatus =
   | { state: 'idle' | 'checking' }
-  | { state: 'available' }
+  | { state: 'available'; url: string }
   | { state: 'unavailable'; reason: string }
 
-interface Props {
-  form: UseFormReturn<GeneralSettings>
-  slugStatus: SlugStatus
+type Page = { id: number; title: string }
+
+/** Liste des pages publiées : chargée une fois, à la première demande. */
+let pagesRequest: Promise<Page[]> | null = null
+function loadPages(): Promise<Page[]> {
+  return (pagesRequest ??= api.get<Page[]>('/general/pages').catch(() => []))
 }
 
-const root = () => document.getElementById('werocket-admin-root')!.dataset as {
-  homeUrl: string; pluginFolder: string; prettyPermalinks: string
-}
-
-export function loginUrl(slug: string): string {
-  const { homeUrl, prettyPermalinks } = root()
-  return prettyPermalinks === '1' ? `${homeUrl}${slug}/` : `${homeUrl}?${slug}`
+async function copyUrl(url: string, success: string) {
+  if (await copyToClipboard(url)) toast.success(success)
+  else toast.error(`Copie impossible : ${url}`)
 }
 
 const WORDS_A = ['espace', 'acces', 'portail', 'entree', 'bureau', 'atelier']
@@ -61,31 +61,28 @@ const REDIRECT_OPTIONS: { value: LoginRedirectMode; title: string; description: 
   { value: 'page', title: 'Rediriger vers une autre page', description: 'Choisissez une page de votre site.' },
 ]
 
+interface Props {
+  form: UseFormReturn<GeneralSettings>
+  slugStatus: SlugStatus
+}
+
 export function LoginUrlSection({ form, slugStatus }: Props) {
   const { watch, setValue } = form
   const enabled = watch('login_enabled')
   const slug = watch('login_slug') ?? ''
   const redirect = watch('login_redirect')
-  const [pages, setPages] = useState<{ id: number; title: string }[]>([])
-  const { homeUrl, pluginFolder, prettyPermalinks } = root()
-  const prefix = prettyPermalinks === '1' ? homeUrl : `${homeUrl}?`
+  const [pages, setPages] = useState<Page[]>([])
 
   useEffect(() => {
-    api.get<{ id: number; title: string }[]>('/general/pages').then(setPages).catch(() => setPages([]))
-  }, [])
+    if (redirect === 'page') loadPages().then(setPages)
+  }, [redirect])
 
   const set = <K extends keyof GeneralSettings>(key: K, value: GeneralSettings[K]) =>
     setValue(key, value as PathValue<GeneralSettings, K>, { shouldDirty: true })
 
-  async function copy() {
-    if (!slug) return
-    await copyToClipboard(loginUrl(slug))
-    toast.success('Adresse copiée')
-  }
-
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-5">
-      <Card className={cn(PANEL, 'flex-row flex-wrap items-center gap-4 p-6')}>
+      <Card variant="panel" className="flex-row flex-wrap items-center gap-4 p-6">
         <div className={cn(
           'flex size-10 shrink-0 items-center justify-center rounded-full',
           enabled ? 'bg-primary-muted text-primary' : 'bg-warning-muted text-warning'
@@ -131,11 +128,10 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
             slugStatus.state === 'unavailable' && 'ring-destructive focus-within:ring-destructive'
           )}>
             <span className="flex h-full max-w-[45%] shrink-0 items-center truncate border-r border-border bg-muted px-3 font-mono text-[13px] text-muted-foreground">
-              {prefix}
+              {getAdminData().general?.loginPrefix}
             </span>
             <Input
               id="wr-login-slug"
-              data-custom
               value={slug}
               onChange={e => set('login_slug', normalizeSlug(e.target.value))}
               placeholder="espace-equipe"
@@ -143,11 +139,18 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
               autoComplete="off"
               aria-invalid={slugStatus.state === 'unavailable'}
               aria-describedby="wr-login-slug-hint"
-              className="h-full flex-1 rounded-none border-0 bg-transparent px-2.5 font-mono text-[13.5px] font-medium shadow-none focus-visible:ring-0 aria-invalid:ring-0"
+              className="h-full flex-1 rounded-none border-0 bg-transparent px-2.5 font-mono text-[13.5px] font-medium focus-visible:ring-0 aria-invalid:ring-0"
             />
-            <SlugStatusPill status={slugStatus} />
+            <SlugStatusBadge status={slugStatus} />
           </div>
-          <Button type="button" variant="outline" className={cn(SECONDARY_BUTTON, 'h-[42px]')} onClick={copy} disabled={!slug}>
+          <Button
+            type="button"
+            variant="surface"
+            size="panel"
+            className="h-[42px]"
+            disabled={slugStatus.state !== 'available'}
+            onClick={() => slugStatus.state === 'available' && copyUrl(slugStatus.url, 'Adresse copiée')}
+          >
             <Copy className="size-4" />
             Copier
           </Button>
@@ -163,11 +166,7 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
         title="Si quelqu'un utilise l'ancienne adresse"
         description="Réponse affichée sur /wp-login.php et /wp-admin aux visiteurs non connectés"
       >
-        <RadioGroup
-          value={redirect}
-          onValueChange={v => set('login_redirect', v as LoginRedirectMode)}
-          className="gap-0"
-        >
+        <RadioGroup value={redirect} onValueChange={v => set('login_redirect', v as LoginRedirectMode)} className="gap-0">
           {REDIRECT_OPTIONS.map(option => {
             const checked = redirect === option.value
             return (
@@ -178,10 +177,7 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
                   checked ? 'bg-primary-muted' : 'hover:bg-muted/60'
                 )}
               >
-                <RadioGroupItem
-                  value={option.value}
-                  className="mt-0.5 size-[18px] border-[1.5px] border-input bg-card data-checked:border-[5px] data-checked:border-primary data-checked:bg-card"
-                />
+                <RadioGroupItem value={option.value} className="mt-0.5" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium text-foreground">{option.title}</span>
                   <span className="mt-[3px] block text-[13px] text-muted-foreground">{option.description}</span>
@@ -225,7 +221,7 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
         <div className="min-w-0 flex-1">
           <div className="text-[13px] font-semibold">Notez cette adresse avant d'enregistrer</div>
           <div className="mt-[3px] text-[12.5px]">
-            En cas d'oubli, renommez le dossier {pluginFolder} par FTP : l'adresse /wp-login.php redeviendra accessible.
+            En cas d'oubli, renommez le dossier {getBootstrap().pluginFolder} par FTP : l'adresse /wp-login.php redeviendra accessible.
           </div>
         </div>
       </div>
@@ -233,23 +229,24 @@ export function LoginUrlSection({ form, slugStatus }: Props) {
   )
 }
 
-function SlugStatusPill({ status }: { status: SlugStatus }) {
-  if (status.state === 'idle') return null
-  const base = 'mr-2 flex h-[22px] shrink-0 items-center gap-1 rounded-full px-2 text-[11.5px] font-semibold'
-  if (status.state === 'checking') {
-    return <span className={cn(base, 'bg-muted text-muted-foreground')}><LoaderCircle className="size-3 animate-spin" />Vérification</span>
+function SlugStatusBadge({ status }: { status: SlugStatus }) {
+  switch (status.state) {
+    case 'idle':
+      return null
+    case 'checking':
+      return <StatusBadge tone="neutral" icon={<LoaderCircle className="animate-spin" />} className="mr-2">Vérification</StatusBadge>
+    case 'available':
+      return <StatusBadge icon={<Check />} className="mr-2">Disponible</StatusBadge>
+    case 'unavailable':
+      return <StatusBadge tone="destructive" icon={<X />} className="mr-2">Indisponible</StatusBadge>
   }
-  if (status.state === 'available') {
-    return <span className={cn(base, 'bg-primary-muted text-primary-strong')}><Check className="size-3" />Disponible</span>
-  }
-  return <span className={cn(base, 'bg-destructive/10 text-destructive')}><X className="size-3" />Indisponible</span>
 }
 
 const REDIRECT_RESULT: Record<LoginRedirectMode, string> = { '404': 'Page 404', home: 'Accueil', page: 'Autre page' }
 
 /** Colonne de droite : ce que voient les visiteurs avec la configuration enregistrée. */
 export function LoginUrlAside({ saved, dirty }: { saved: GeneralSettings; dirty: boolean }) {
-  const active = saved.login_enabled && saved.login_slug !== ''
+  const active = saved.login_enabled && saved.login_url !== ''
   const blocked = REDIRECT_RESULT[saved.login_redirect] ?? 'Page 404'
   const rows = active
     ? [
@@ -262,21 +259,20 @@ export function LoginUrlAside({ saved, dirty }: { saved: GeneralSettings; dirty:
         { path: '/wp-admin', allowed: true, result: 'Connexion' },
       ]
 
-  async function test() {
+  function test() {
     if (!active) {
       toast.info('Activez et enregistrez une URL personnalisée pour la tester.')
       return
     }
     if (dirty) toast.warning('Le test porte sur l\'adresse enregistrée, pas sur vos modifications en cours.')
-    await copyToClipboard(loginUrl(saved.login_slug))
-    toast.success('Adresse copiée : collez-la dans une fenêtre de navigation privée.')
+    copyUrl(saved.login_url, 'Adresse copiée : collez-la dans une fenêtre de navigation privée.')
   }
 
   return (
     <aside className="flex shrink-0 flex-col gap-5 2xl:w-[360px]">
-      <Card className={PANEL}>
+      <Card variant="panel">
         <div className="px-4 pt-4 pb-3">
-          <div role="heading" aria-level={2} className="text-[13px] font-semibold text-foreground">Ce que voient les visiteurs</div>
+          <PanelTitle>Ce que voient les visiteurs</PanelTitle>
           <div className="mt-1 text-xs text-subtle-foreground">Visiteur non connecté</div>
         </div>
         {rows.map(row => (
@@ -296,15 +292,15 @@ export function LoginUrlAside({ saved, dirty }: { saved: GeneralSettings; dirty:
           </div>
         ))}
         <div className="border-t border-border p-4">
-          <Button type="button" variant="outline" className={cn(SECONDARY_BUTTON, 'w-full')} onClick={test}>
+          <Button type="button" variant="surface" size="panel" className="w-full" onClick={test}>
             <AppWindow className="size-4" />
             Tester en navigation privée
           </Button>
         </div>
       </Card>
 
-      <Card className={cn(PANEL, 'gap-2.5 p-4')}>
-        <div role="heading" aria-level={2} className="text-[13px] font-semibold text-foreground">Bon à savoir</div>
+      <Card variant="panel" className="gap-2.5 p-4">
+        <PanelTitle>Bon à savoir</PanelTitle>
         {[
           'Les liens « Mot de passe oublié » et les emails de réinitialisation utilisent automatiquement la nouvelle adresse.',
           'WooCommerce : la page « Mon compte » continue de fonctionner pour vos clients.',

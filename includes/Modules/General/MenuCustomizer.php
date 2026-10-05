@@ -3,9 +3,12 @@
  * Réorganisation du menu d'administration : ordre, noms, éléments masqués,
  * espaces et titres de section. S'applique à tous les utilisateurs.
  *
- * L'ordre passe par l'API officielle (custom_menu_order / menu_order) :
- * les menus absents de la configuration — ajoutés plus tard par une autre
- * extension — sont placés par WordPress en bas de la liste.
+ * Tout passe par le filtre `custom_menu_order`, que WordPress applique après
+ * avoir trié et nettoyé le menu (menus inaccessibles retirés…) : la capture
+ * de l'éditeur voit donc exactement le menu d'origine affiché, et nos
+ * changements profitent ensuite de l'API officielle `menu_order` — les menus
+ * absents de la configuration (ajoutés plus tard par une autre extension)
+ * sont placés par WordPress en bas de la liste.
  *
  * Les titres de section ne sont PAS des séparateurs WordPress : le cœur
  * supprime les séparateurs adjacents (wp-admin/includes/menu.php), un titre
@@ -17,76 +20,66 @@ namespace WeRocket\Tools\Modules\General;
 
 class MenuCustomizer {
 
-    private const OWN_SLUG       = 'werocket-tools';
+    /** Menu du plugin : toujours visible, sinon plus d'accès à ces réglages. */
+    public const OWN_SLUG = 'werocket-tools';
+
     private const SPACE_PREFIX   = 'separator-wr-';
     private const HEADING_PREFIX = 'werocket-heading-';
-
-    /** Menu d'origine (avant personnalisation), exposé à l'éditeur React. */
-    private static ?array $snapshot = null;
+    /** Pastilles ajoutées au titre (commentaires en attente, mises à jour…). */
+    private const BUBBLE_PATTERN = '/\s*<span\b.*$/s';
 
     /** @var array<int, array<string, mixed>> */
     private array $items;
+
+    /** Menu d'origine (avant personnalisation), exposé à l'éditeur React. */
+    private array $snapshot = [];
 
     public function __construct(array $items) {
         $this->items = $items;
     }
 
-    /** Capture le menu tel que construit par WordPress et les extensions, juste avant nos changements. */
-    public static function register_snapshot(): void {
-        add_action('admin_menu', [self::class, 'capture'], PHP_INT_MAX - 1);
-    }
-
-    public static function capture(): void {
-        global $menu, $submenu;
-
-        $sorted = (array) $menu;
-        uksort($sorted, 'strnatcasecmp'); // Même tri que wp-admin/includes/menu.php.
-
-        self::$snapshot = [];
-        foreach ($sorted as $entry) {
-            $slug = (string) ($entry[2] ?? '');
-            if (str_contains((string) ($entry[4] ?? ''), 'wp-menu-separator')) {
-                self::$snapshot[] = ['type' => 'separator', 'slug' => $slug];
-                continue;
-            }
-            // WordPress nettoie ensuite le menu (wp-admin/includes/menu.php) :
-            // sous-menu unique identique au parent retiré, puis menu sans
-            // sous-menu et sans droit d'accès supprimé (ex. « Liens » quand le
-            // gestionnaire de liens est désactivé). Même règle ici.
-            $subs  = (array) ($submenu[$slug] ?? []);
-            $first = reset($subs);
-            if (count($subs) === 1 && is_array($first) && ($first[2] ?? null) === $slug) {
-                $subs = [];
-            }
-            if (!$subs && !current_user_can((string) ($entry[1] ?? 'read'))) {
-                continue;
-            }
-            self::$snapshot[] = [
-                'type'     => 'menu',
-                'slug'     => $slug,
-                'title'    => self::clean_title((string) ($entry[0] ?? '')),
-                'icon'     => (string) ($entry[6] ?? ''),
-                'submenus' => count($subs),
-            ];
+    /** @param bool $capture Mémoriser le menu d'origine (page du plugin uniquement). */
+    public function register(bool $capture): void {
+        if ($capture) {
+            add_filter('custom_menu_order', [$this, 'capture'], 0);
         }
-    }
-
-    public static function snapshot(): array {
-        return self::$snapshot ?? [];
-    }
-
-    public function register(): void {
         if (!$this->items) {
             return;
         }
-        add_action('admin_menu', [$this, 'apply'], PHP_INT_MAX);
-        add_filter('custom_menu_order', '__return_true', PHP_INT_MAX);
+        add_filter('custom_menu_order', [$this, 'apply'], PHP_INT_MAX);
         add_filter('menu_order', [$this, 'order'], PHP_INT_MAX);
-        add_action('admin_head', [$this, 'print_styles']);
-        add_action('admin_footer', [$this, 'print_script']);
+
+        if (array_filter($this->items, static fn(array $item): bool => $item['type'] === 'heading')) {
+            add_action('admin_head', [$this, 'print_styles']);
+            add_action('admin_footer', [$this, 'print_script']);
+        }
     }
 
-    public function apply(): void {
+    public function snapshot(): array {
+        return $this->snapshot;
+    }
+
+    /** @param mixed $custom Valeur du filtre, rendue telle quelle. */
+    public function capture($custom) {
+        global $menu, $submenu;
+
+        foreach ((array) $menu as $entry) {
+            $slug = (string) ($entry[2] ?? '');
+            $this->snapshot[] = self::is_separator($entry)
+                ? ['type' => 'separator', 'slug' => $slug]
+                : [
+                    'type'     => 'menu',
+                    'slug'     => $slug,
+                    'title'    => self::clean_title((string) ($entry[0] ?? '')),
+                    'icon'     => (string) ($entry[6] ?? ''),
+                    'submenus' => count($submenu[$slug] ?? []),
+                ];
+        }
+        return $custom;
+    }
+
+    /** Applique noms, masquages et séparateurs, puis active le tri personnalisé. */
+    public function apply($custom): bool {
         global $menu;
 
         $positions = [];
@@ -102,11 +95,11 @@ class MenuCustomizer {
                     if ($pos === null) {
                         break;
                     }
-                    if (!empty($item['hidden']) && $item['slug'] !== self::OWN_SLUG) {
+                    if (!empty($item['hidden'])) {
                         unset($menu[$pos]);
                     } elseif (($item['label'] ?? '') !== '') {
-                        // On garde les pastilles (commentaires en attente, mises à jour…).
-                        $menu[$pos][0] = esc_html($item['label']) . self::bubble((string) $menu[$pos][0]);
+                        $bubble        = preg_match(self::BUBBLE_PATTERN, (string) $menu[$pos][0], $m) ? $m[0] : '';
+                        $menu[$pos][0] = esc_html($item['label']) . $bubble;
                     }
                     break;
 
@@ -135,12 +128,14 @@ class MenuCustomizer {
         // Séparateurs d'origine supprimés dans l'éditeur.
         foreach ((array) $menu as $pos => $entry) {
             $slug = (string) ($entry[2] ?? '');
-            if (str_contains((string) ($entry[4] ?? ''), 'wp-menu-separator')
+            if (self::is_separator($entry)
                 && !str_starts_with($slug, self::SPACE_PREFIX)
                 && !in_array($slug, $kept_separators, true)) {
                 unset($menu[$pos]);
             }
         }
+
+        return true;
     }
 
     /** @param array<int, string> $order */
@@ -183,12 +178,12 @@ document.querySelectorAll('#adminmenu li.werocket-menu-heading > a').forEach(fun
         <?php
     }
 
-    private static function clean_title(string $title): string {
-        $title = (string) preg_replace('/\s*<span\b.*$/s', '', $title);
-        return trim(html_entity_decode(wp_strip_all_tags($title), ENT_QUOTES, 'UTF-8'));
+    private static function is_separator(array $entry): bool {
+        return str_contains((string) ($entry[4] ?? ''), 'wp-menu-separator');
     }
 
-    private static function bubble(string $title): string {
-        return preg_match('/\s*<span\b.*$/s', $title, $m) ? $m[0] : '';
+    private static function clean_title(string $title): string {
+        $title = (string) preg_replace(self::BUBBLE_PATTERN, '', $title);
+        return trim(html_entity_decode(wp_strip_all_tags($title), ENT_QUOTES, 'UTF-8'));
     }
 }

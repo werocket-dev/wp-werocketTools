@@ -32,9 +32,30 @@ class GeneralModule extends AbstractModule {
     protected string $option_key = 'werocket_general_settings';
 
     public function init(): void {
-        LoginUrl::boot($this->get_settings());
-        (new MenuCustomizer($this->get_settings()['menu_items']))->register();
+        $settings = $this->get_settings();
+        LoginUrl::boot($settings);
         new RestApi();
+
+        if (!is_admin()) {
+            return;
+        }
+        // Le menu d'origine n'est utile qu'à l'éditeur, sur la page du plugin.
+        $on_plugin_page = sanitize_key((string) ($_GET['page'] ?? '')) === MenuCustomizer::OWN_SLUG;
+        $menu = new MenuCustomizer($settings['menu_items']);
+        $menu->register($on_plugin_page);
+
+        if ($on_plugin_page) {
+            add_filter('werocket_tools_admin_data', static fn(array $data): array => $data + [
+                'general' => ['menuSnapshot' => $menu->snapshot(), 'loginPrefix' => LoginUrl::prefix()],
+            ]);
+        }
+    }
+
+    /** Ajoute l'URL de connexion calculée (lecture seule, ignorée à l'enregistrement). */
+    public function get_settings(): array {
+        $settings = parent::get_settings();
+        $settings['login_url'] = $settings['login_slug'] !== '' ? LoginUrl::login_url_for($settings['login_slug']) : '';
+        return $settings;
     }
 
     public function render_settings(): void {
@@ -83,7 +104,7 @@ class GeneralModule extends AbstractModule {
 
         if ($result && $address_changed) {
             if ($after['login_notify']) {
-                $this->notify_admins(LoginUrl::login_url_for($after['login_slug']));
+                $this->notify_admins($after['login_url']);
             }
             if (!$after['login_keep_session']) {
                 wp_destroy_current_session();
@@ -143,7 +164,7 @@ class GeneralModule extends AbstractModule {
                     'slug'   => $slug,
                     'label'  => mb_substr(sanitize_text_field((string) ($item['label'] ?? '')), 0, 60),
                     // Le menu du plugin reste toujours visible : sinon plus d'accès à ces réglages.
-                    'hidden' => !empty($item['hidden']) && $slug !== 'werocket-tools',
+                    'hidden' => !empty($item['hidden']) && $slug !== MenuCustomizer::OWN_SLUG,
                 ];
             } elseif ($type === 'space' || $type === 'heading') {
                 $id = sanitize_key((string) ($item['id'] ?? ''));

@@ -100,8 +100,9 @@
  * boutons qui héritent police/graisse du parent, liens bleus, marges des
  * p / li / dd, etc. Une règle hors layer elle aussi, mais plus spécifique,
  * avec `revert-layer` rend la main aux layers Tailwind (preflight +
- * utilitaires). Les champs de formulaire ne sont pas concernés : leurs
- * classes shadcn cohabitent déjà avec forms.css.
+ * utilitaires). Même principe pour les champs (forms.css) et les dashicons
+ * (dashicons.css) : leurs classes Tailwind — y compris celles passées en
+ * className à un Input — s'appliquent alors normalement.
  */
 #werocket-app :is(button, a, p, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd) {
   font-size: revert-layer;
@@ -114,23 +115,27 @@
   box-shadow: revert-layer;
 }
 
-/*
- * ─── Inputs au style des maquettes ───
- *
- * _tw-base.css impose, hors layer, l'apparence shadcn à tous les
- * input[data-slot="input"] (pour battre forms.css de wp-admin) : leurs
- * classes Tailwind sont alors ignorées. Avec l'attribut `data-custom`, la
- * règle se retire (revert-layer) et le className de l'Input s'applique.
- */
-#werocket-app input[data-slot="input"][data-custom],
-#werocket-app input[data-slot="input"][data-custom]:focus,
-#werocket-app input[data-slot="input"][data-custom]:focus-visible {
+#werocket-app :is(input, textarea)[data-slot],
+#werocket-app :is(input, textarea)[data-slot]:focus,
+#werocket-app :is(input, textarea)[data-slot]:focus-visible {
   height: revert-layer;
+  min-height: revert-layer;
   border: revert-layer;
   border-radius: revert-layer;
   background-color: revert-layer;
   padding: revert-layer;
+  font-family: revert-layer;
   font-size: revert-layer;
+  font-weight: revert-layer;
   line-height: revert-layer;
+  color: revert-layer;
   box-shadow: revert-layer;
+  outline: revert-layer;
+  resize: revert-layer;
+}
+
+#werocket-app .dashicons {
+  width: revert-layer;
+  height: revert-layer;
+  font-size: revert-layer;
 }

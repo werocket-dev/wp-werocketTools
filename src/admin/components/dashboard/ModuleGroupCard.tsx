@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils'
 import type { ModuleCategory, ModuleGroup } from '@/lib/modules'
 import type { DashboardAlert, Module } from '@/lib/types'
 import { ModuleRow } from './ModuleRow'
-import { PANEL } from '../styles'
 
 interface Props {
   group: ModuleGroup
@@ -24,7 +23,7 @@ export function ModuleGroupCard({ group, modules, alerts, onToggle, onNavigate }
   const logo = LOGOS[group.id]
 
   return (
-    <Card className={PANEL} role="region" aria-label={group.label}>
+    <Card variant="panel" role="region" aria-label={group.label}>
       <div className="flex items-center gap-2.5 bg-muted px-6 py-3">
         <span
           className={cn('flex size-[22px] shrink-0 items-center justify-center rounded-md font-bold text-inverse-foreground', logo.className)}

@@ -14,6 +14,7 @@ import {
   IconTemplate, IconLayoutGrid, IconPalette, IconStar,
 } from '@tabler/icons-react'
 import { api } from '@/lib/api'
+import { formatRelative } from '@/lib/format'
 import { Spinner } from '../components/Spinner'
 import { cn } from '@/lib/utils'
 import { copyToClipboard } from '@/lib/clipboard'
@@ -39,16 +40,6 @@ interface SyncResult {
 interface SyncStatus {
   last_sync: SyncResult | null
   next_sync_ts: number | null
-}
-
-function formatRelative(unixTs: number): string {
-  const now = Math.floor(Date.now() / 1000)
-  const diff = now - unixTs
-  if (diff < 60) return 'à l\'instant'
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
-  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`
-  if (diff < 86400 * 30) return `il y a ${Math.floor(diff / 86400)} j`
-  return new Date(unixTs * 1000).toLocaleDateString('fr-FR')
 }
 
 function formatAbsolute(unixTs: number): string {

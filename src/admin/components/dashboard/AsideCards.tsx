@@ -2,10 +2,9 @@ import { ArrowRight, ArrowUpRight, BookOpen, MessageCircle, Sparkles } from 'luc
 import { Card } from '@/components/ui/card'
 import { LINKS } from '@/lib/modules'
 import type { DashboardStatus } from '@/lib/types'
+import { getBootstrap } from '@/lib/admin-bootstrap'
+import { PanelTitle } from '../SettingsSection'
 import { StatusBadge } from '../StatusBadge'
-import { PANEL } from '../styles'
-
-const CARD_TITLE = 'text-[13px] font-semibold text-foreground'
 
 /** Version du plugin, environnement WordPress / WooCommerce, modules actifs. */
 export function PluginInfoCard({ status }: { status: DashboardStatus | null }) {
@@ -17,9 +16,9 @@ export function PluginInfoCard({ status }: { status: DashboardStatus | null }) {
   ]
 
   return (
-    <Card className={PANEL}>
+    <Card variant="panel">
       <div className="flex items-center gap-2 px-4 pt-4 pb-3">
-        <div role="heading" aria-level={2} className={`${CARD_TITLE} flex-1`}>Werocket Tools</div>
+        <PanelTitle className="flex-1">Werocket Tools</PanelTitle>
         {status && (status.plugin.update
           ? <StatusBadge tone="warning">v{status.plugin.update} disponible</StatusBadge>
           : <StatusBadge>À jour</StatusBadge>)}
@@ -38,7 +37,7 @@ export function PluginInfoCard({ status }: { status: DashboardStatus | null }) {
 
 /** Teaser de la boutique de modules (surface sombre, comme le header). */
 export function ShopCard() {
-  const { pluginUrl } = document.getElementById('werocket-admin-root')!.dataset as { pluginUrl: string }
+  const { pluginUrl } = getBootstrap()
 
   return (
     <div className="relative overflow-hidden rounded-[12px] bg-inverse">
@@ -78,8 +77,8 @@ export function HelpCard({ version }: { version: string }) {
   ]
 
   return (
-    <Card className={PANEL}>
-      <div role="heading" aria-level={2} className={`${CARD_TITLE} px-4 pt-4 pb-3`}>Besoin d'aide ?</div>
+    <Card variant="panel">
+      <PanelTitle className="px-4 pt-4 pb-3">Besoin d'aide ?</PanelTitle>
       {links.map(({ label, href, icon: Icon }) => (
         <a
           key={label}

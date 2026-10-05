@@ -1,11 +1,12 @@
+import { getBootstrap } from '@/lib/admin-bootstrap'
+
 interface Props {
   children?: React.ReactNode
 }
 
 /** Barre sombre pleine largeur : logo + version à gauche, navigation à droite. */
 export function Header({ children }: Props) {
-  const root = document.getElementById('werocket-admin-root')!
-  const { pluginUrl, version } = root.dataset as { pluginUrl: string; version: string }
+  const { pluginUrl, version } = getBootstrap()
 
   return (
     <header className="relative overflow-hidden bg-inverse">

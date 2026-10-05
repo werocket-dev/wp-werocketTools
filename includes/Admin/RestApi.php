@@ -143,7 +143,8 @@ class RestApi {
         ]);
     }
 
-    public function require_admin(): bool|WP_Error {
+    /** Statique : réutilisée comme permission_callback par les routes des modules. */
+    public static function require_admin(): bool|WP_Error {
         if (!current_user_can('manage_options')) {
             return new WP_Error('rest_forbidden', __('Permission refusée', 'werocket-tools'), ['status' => 403]);
         }

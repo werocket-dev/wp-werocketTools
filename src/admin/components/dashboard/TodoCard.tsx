@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModuleIcon } from '@/lib/module-icons'
 import type { DashboardAlert, Module } from '@/lib/types'
-import { PANEL, ROW_ACTION_BUTTON } from '../styles'
 
 interface Props {
   alerts: DashboardAlert[]
@@ -16,7 +15,7 @@ export function TodoCard({ alerts, modules, onNavigate }: Props) {
   const moduleName = (id: string) => modules.find(m => m.id === id)?.name ?? id
 
   return (
-    <Card className={PANEL}>
+    <Card variant="panel">
       <div className="flex items-center gap-2.5 px-6 pt-[18px] pb-3.5">
         <div role="heading" aria-level={2} className="text-[15px] font-semibold text-foreground">À traiter</div>
         <span className="flex h-5 items-center rounded-full bg-warning-muted px-[7px] text-xs font-bold text-warning tabular-nums">
@@ -41,8 +40,8 @@ export function TodoCard({ alerts, modules, onNavigate }: Props) {
               </div>
             </div>
             <Button
-              variant="outline"
-              className={ROW_ACTION_BUTTON}
+              variant="surface"
+              size="row"
               onClick={() => onNavigate(alert.module, alert.section || undefined)}
             >
               {alert.action}

@@ -19,6 +19,11 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // Maquettes admin : bouton secondaire blanc bordé, et bouton icône discret.
+        surface:
+          "border-input bg-card text-foreground hover:bg-muted hover:text-foreground [&_svg]:text-muted-foreground",
+        subtle:
+          "text-subtle-foreground hover:bg-muted hover:text-foreground aria-pressed:bg-primary-muted aria-pressed:text-primary",
       },
       size: {
         default:
@@ -30,6 +35,10 @@ const buttonVariants = cva(
         "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",
+        // Maquettes admin : rayons 8 / 7 / 6 px au lieu de la pilule Luma.
+        panel: "h-9 gap-2 rounded-[8px] px-3.5 text-[13px]",
+        row: "h-[30px] gap-1 rounded-[7px] px-2.5 text-xs font-semibold",
+        "icon-row": "size-7 rounded-[6px]",
       },
     },
     defaultVariants: {

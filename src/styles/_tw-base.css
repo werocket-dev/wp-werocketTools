@@ -234,8 +234,9 @@
    utilities Tailwind @layer. On re-déclare le style shadcn ici, en non-layered
    et avec spécificité (0,1,1,1) > WP admin (0,0,1,1), pour récupérer le rendu
    shadcn sur les inputs type="number" / type="password" / type="email" etc.
-   qui sont autrement écrasés par les défauts WP admin. */
-#werocket-app input[data-slot="input"],
+   qui sont autrement écrasés par les défauts WP admin. Ne concerne plus que
+   les portails Radix (dialogues) : dans #werocket-app, globals.css rend la
+   main aux classes de l'Input via revert-layer. */
 [data-slot="dialog-content"] input[data-slot="input"],
 [data-radix-popper-content-wrapper] input[data-slot="input"] {
   height: 2.25rem;
@@ -253,7 +254,6 @@
   font-family: inherit;
 }
 
-#werocket-app textarea[data-slot="textarea"],
 [data-slot="dialog-content"] textarea[data-slot="textarea"] {
   width: 100%;
   min-width: 0;
@@ -271,11 +271,12 @@
   font-family: inherit;
 }
 
-/* Focus state — beat WP admin's focus outline too */
-#werocket-app input[data-slot="input"]:focus,
-#werocket-app input[data-slot="input"]:focus-visible,
-#werocket-app textarea[data-slot="textarea"]:focus,
-#werocket-app textarea[data-slot="textarea"]:focus-visible {
+/* Focus state — beat WP admin's focus outline too (portails Radix ; dans
+   #werocket-app, voir la neutralisation revert-layer de globals.css) */
+[data-slot="dialog-content"] input[data-slot="input"]:focus,
+[data-slot="dialog-content"] input[data-slot="input"]:focus-visible,
+[data-slot="dialog-content"] textarea[data-slot="textarea"]:focus,
+[data-slot="dialog-content"] textarea[data-slot="textarea"]:focus-visible {
   border-color: var(--ring);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);
   outline: none;

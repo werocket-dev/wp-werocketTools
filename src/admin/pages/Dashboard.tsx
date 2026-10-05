@@ -3,6 +3,7 @@ import { BookOpen, LayoutGrid } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { api } from '@/lib/api'
+import { getBootstrap } from '@/lib/admin-bootstrap'
 import { cn } from '@/lib/utils'
 import { LINKS, MODULE_GROUPS, getModuleCategory, type ModuleCategory } from '@/lib/modules'
 import type { DashboardStatus, Module } from '@/lib/types'
@@ -11,7 +12,6 @@ import { StatusBadge } from '../components/StatusBadge'
 import { TodoCard } from '../components/dashboard/TodoCard'
 import { ModuleGroupCard } from '../components/dashboard/ModuleGroupCard'
 import { HelpCard, PluginInfoCard, ShopCard } from '../components/dashboard/AsideCards'
-import { PANEL, SECONDARY_BUTTON } from '../components/styles'
 
 type FilterCategory = 'all' | ModuleCategory
 
@@ -24,7 +24,7 @@ interface Props {
 export function Dashboard({ modules, onToggle, onNavigate }: Props) {
   const [filter, setFilter] = useState<FilterCategory>('all')
   const [status, setStatus] = useState<DashboardStatus | null>(null)
-  const { version } = document.getElementById('werocket-admin-root')!.dataset as { version: string }
+  const { version } = getBootstrap()
 
   const loadStatus = useCallback(() => {
     api.get<DashboardStatus>('/dashboard')
@@ -64,7 +64,7 @@ export function Dashboard({ modules, onToggle, onNavigate }: Props) {
         badge={<StatusBadge>{activeCount} module{activeCount > 1 ? 's' : ''} actif{activeCount > 1 ? 's' : ''}</StatusBadge>}
         description="Retrouvez l'état de vos modules et ce qui demande votre attention."
         actions={
-          <Button variant="outline" className={SECONDARY_BUTTON} asChild>
+          <Button variant="surface" size="panel" asChild>
             <a href={LINKS.documentation} target="_blank" rel="noreferrer">
               <BookOpen className="size-4" />
               Documentation
@@ -107,7 +107,7 @@ export function Dashboard({ modules, onToggle, onNavigate }: Props) {
           </div>
 
           {modules.length === 0 ? (
-            <Card className={PANEL}>
+            <Card variant="panel">
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
                 Aucun module disponible.
               </CardContent>

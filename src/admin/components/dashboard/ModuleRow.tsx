@@ -7,7 +7,6 @@ import { api } from '@/lib/api'
 import { ModuleIcon } from '@/lib/module-icons'
 import type { Module } from '@/lib/types'
 import { StatusBadge } from '../StatusBadge'
-import { SECONDARY_BUTTON } from '../styles'
 
 interface Props {
   module: Module
@@ -58,7 +57,7 @@ export function ModuleRow({ module, alertCount, onToggle, onNavigate }: Props) {
           disabled={loading}
           aria-label={`Activer ${module.name}`}
         />
-        <Button variant="outline" className={SECONDARY_BUTTON} onClick={() => onNavigate(module.id)}>
+        <Button variant="surface" size="panel" onClick={() => onNavigate(module.id)}>
           <Settings2 className="size-4" />
           Configurer
         </Button>

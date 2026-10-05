@@ -5,7 +5,6 @@
 
 namespace WeRocket\Tools\Admin;
 
-use WeRocket\Tools\Modules\General\MenuCustomizer;
 use WeRocket\Tools\Modules\ModuleManager;
 
 class AdminMenu {
@@ -20,9 +19,6 @@ class AdminMenu {
     public function init(): void {
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
-
-        // Menu d'origine pour l'éditeur « Menu d'administration » (module Général).
-        MenuCustomizer::register_snapshot();
     }
 
     public function register_menu(): void {
