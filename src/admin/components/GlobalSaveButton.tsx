@@ -31,27 +31,26 @@ export function GlobalSaveButton() {
   return (
     <div className="flex items-center gap-3">
       {isDirty && !saving && (
-        <span className="flex items-center gap-1.5 text-sm text-amber-300/90">
+        <span className="flex items-center gap-1.5 text-[13px] font-medium text-warning">
           <IconCircleFilled className="size-2 animate-pulse" />
           Modifications non enregistrées
         </span>
       )}
       {savedText && (
-        <span className="text-sm text-white/70">{savedText}</span>
+        <span className="text-[13px] text-muted-foreground">{savedText}</span>
       )}
       <Button
         type="submit"
         form={formId}
-        size="lg"
         disabled={saving}
         className={cn(
-          'h-11 gap-2 text-[15px] px-5 shadow-md transition-all',
-          isDirty && !saving && 'ring-2 ring-amber-300/40 ring-offset-2 ring-offset-background',
+          'h-9 gap-2 rounded-lg px-3.5 text-[13px] transition-all',
+          isDirty && !saving && 'ring-2 ring-warning/30 ring-offset-2 ring-offset-background',
         )}
       >
         {saving
-          ? <IconLoader2 className="size-[18px] animate-spin" />
-          : <IconDeviceFloppy className="size-[18px]" />}
+          ? <IconLoader2 className="size-4 animate-spin" />
+          : <IconDeviceFloppy className="size-4" />}
         {saving ? 'Enregistrement...' : 'Enregistrer'}
       </Button>
     </div>

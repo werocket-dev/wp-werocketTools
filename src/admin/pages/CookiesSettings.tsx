@@ -109,7 +109,7 @@ export function CookiesSettings() {
   return (
     <form id={FORM_ID} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-      <Tabs defaultValue="general">
+      <Tabs defaultValue={new URLSearchParams(window.location.search).get('section') ?? 'general'}>
         <TabsList className="flex flex-wrap h-auto w-fit rounded-3xl">
           <TabsTrigger value="general"><IconDatabase />Général</TabsTrigger>
           <TabsTrigger value="behavior"><IconAdjustmentsHorizontal />Comportement</TabsTrigger>

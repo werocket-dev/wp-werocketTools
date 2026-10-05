@@ -26,8 +26,8 @@ class ClickCollectModule extends AbstractModule {
     public const META_PICKUP_TIME   = '_wr_cc_pickup_time';
 
     protected string $id = 'click_collect';
-    protected string $name = 'Clic & Collect (WooCommerce)';
-    protected string $description = 'Configurez vos lieux de retrait, horaires et délais minimum de préparation pour proposer le retrait en magasin.';
+    protected string $name = 'Clic & Collect';
+    protected string $description = 'Lieux de retrait, horaires et délais de préparation pour le retrait en magasin.';
     protected string $icon = '<svg class="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 7v12a2 2 0 002 2h10a2 2 0 002-2V7M9 7V5a3 3 0 016 0v2"/></svg>';
     protected string $option_key = 'werocket_click_collect_settings';
 

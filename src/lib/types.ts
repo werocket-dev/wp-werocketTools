@@ -6,6 +6,25 @@ export interface Module {
   active: boolean
 }
 
+export interface DashboardAlert {
+  id: string
+  module: string
+  title: string
+  hint: string
+  action: string
+  /** Sous-onglet de la page du module à ouvrir ('' = défaut) */
+  section: string
+}
+
+export interface DashboardStatus {
+  user: string
+  plugin: { version: string; update: string | null }
+  wordpress: string
+  woocommerce: string | null
+  modules: { active: number; total: number }
+  alerts: DashboardAlert[]
+}
+
 export interface Review {
   author_name: string
   profile_photo_url?: string

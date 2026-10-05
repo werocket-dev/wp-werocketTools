@@ -16,8 +16,8 @@ use WeRocket\Tools\Modules\AbstractModule;
 class RetractationModule extends AbstractModule {
 
     protected string $id = 'retractation';
-    protected string $name = 'Rétractation (WooCommerce)';
-    protected string $description = 'Formulaire de rétractation en ligne conforme à l\'obligation B2C 2026, avec accusé de réception sur support durable.';
+    protected string $name = 'Rétractation';
+    protected string $description = 'Formulaire de rétractation en ligne conforme à l\'obligation B2C 2026, avec accusé de réception.';
     protected string $icon = '<svg class="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6-6m-6 6l6 6"/></svg>';
     protected string $option_key = 'werocket_retractation_settings';
 
