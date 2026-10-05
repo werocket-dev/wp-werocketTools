@@ -1,144 +1,137 @@
-import { useState } from 'react'
-import { IconBrandWordpress, IconShoppingBag } from '@tabler/icons-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { useCallback, useEffect, useState } from 'react'
+import { BookOpen, LayoutGrid } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ModuleCard } from '../components/ModuleCard'
-import { getModuleCategory, MODULE_GROUPS, WOO_THEME_VARS, type ModuleCategory, type ModuleGroup } from '@/lib/modules'
-import type { Module } from '@/lib/types'
+import { Card, CardContent } from '@/components/ui/card'
+import { api } from '@/lib/api'
+import { cn } from '@/lib/utils'
+import { LINKS, MODULE_GROUPS, getModuleCategory, type ModuleCategory } from '@/lib/modules'
+import type { DashboardStatus, Module } from '@/lib/types'
+import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
+import { TodoCard } from '../components/dashboard/TodoCard'
+import { ModuleGroupCard } from '../components/dashboard/ModuleGroupCard'
+import { HelpCard, PluginInfoCard, ShopCard } from '../components/dashboard/AsideCards'
+import { PANEL, SECONDARY_BUTTON } from '../components/dashboard/styles'
 
 type FilterCategory = 'all' | ModuleCategory
 
 interface Props {
   modules: Module[]
   onToggle: (id: string, active: boolean) => void
-  onNavigate: (tab: string) => void
-}
-
-const FILTERS: { value: FilterCategory; label: string }[] = [
-  { value: 'all', label: 'Tous' },
-  ...MODULE_GROUPS.map(g => ({ value: g.id, label: g.label })),
-]
-
-const GROUP_ICONS: Record<ModuleCategory, typeof IconBrandWordpress> = {
-  wordpress: IconBrandWordpress,
-  woocommerce: IconShoppingBag,
+  onNavigate: (tab: string, section?: string) => void
 }
 
 export function Dashboard({ modules, onToggle, onNavigate }: Props) {
   const [filter, setFilter] = useState<FilterCategory>('all')
+  const [status, setStatus] = useState<DashboardStatus | null>(null)
+  const { version } = document.getElementById('werocket-admin-root')!.dataset as { version: string }
 
-  if (!modules.length) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground text-sm">
-          Aucun module disponible.
-        </CardContent>
-      </Card>
-    )
+  const loadStatus = useCallback(() => {
+    api.get<DashboardStatus>('/dashboard')
+      .then(setStatus)
+      // Non bloquant : sans état serveur, le bloc « À traiter » est masqué
+      // et l'aside affiche des tirets ; la gestion des modules reste utilisable.
+      .catch(e => console.error('[WeRocketTools] /dashboard', e))
+  }, [])
+
+  useEffect(loadStatus, [loadStatus])
+
+  // Activer/désactiver un module change les alertes et le compteur d'actifs.
+  function handleToggle(id: string, active: boolean) {
+    onToggle(id, active)
+    loadStatus()
   }
 
-  // Une section par groupe, dans l'ordre de MODULE_GROUPS ; les groupes
-  // vides (ou exclus par le filtre) ne sont pas rendus.
-  const sections = MODULE_GROUPS
-    .filter(group => filter === 'all' || filter === group.id)
-    .map(group => ({
-      group,
-      modules: modules.filter(m => getModuleCategory(m.id) === group.id),
-    }))
-    .filter(section => section.modules.length > 0)
+  const byGroup = MODULE_GROUPS.map(group => ({
+    group,
+    modules: modules.filter(m => getModuleCategory(m.id) === group.id),
+  })).filter(section => section.modules.length > 0)
 
-  return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Filtrer les modules">
-        {FILTERS.map(f => {
-          const isActive = filter === f.value
-          return (
-            <Button
-              key={f.value}
-              type="button"
-              size="sm"
-              variant={isActive ? 'default' : 'outline'}
-              aria-pressed={isActive}
-              className="rounded-full px-4"
-              style={isActive && f.value === 'woocommerce' ? WOO_THEME_VARS : undefined}
-              onClick={() => setFilter(f.value)}
-            >
-              {f.label}
-            </Button>
-          )
-        })}
-      </div>
+  const filters: { value: FilterCategory; label: string }[] = [
+    { value: 'all', label: `Tous · ${modules.length}` },
+    ...byGroup.map(({ group, modules: m }) => ({ value: group.id, label: `${group.label} · ${m.length}` })),
+  ]
 
-      {sections.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground text-sm">
-            Aucun module dans cette catégorie.
-          </CardContent>
-        </Card>
-      ) : (
-        sections.map(({ group, modules: groupModules }) => (
-          <ModuleGroupSection
-            key={group.id}
-            group={group}
-            modules={groupModules}
-            onToggle={onToggle}
-            onNavigate={onNavigate}
-          />
-        ))
-      )}
-    </div>
-  )
-}
-
-interface SectionProps {
-  group: ModuleGroup
-  modules: Module[]
-  onToggle: (id: string, active: boolean) => void
-  onNavigate: (tab: string) => void
-}
-
-function ModuleGroupSection({ group, modules, onToggle, onNavigate }: SectionProps) {
-  const Icon = GROUP_ICONS[group.id]
+  const sections = byGroup.filter(s => filter === 'all' || filter === s.group.id)
   const activeCount = modules.filter(m => m.active).length
-  const headingId = `werocket-group-${group.id}`
+  const alerts = status?.alerts ?? []
 
   return (
-    <section aria-labelledby={headingId} className="space-y-4">
-      {/* Le thème du groupe ne colore que l'en-tête : les cartes appliquent
-          déjà le leur (ModuleCard), on ne veut pas teinter tout le fond. */}
-      <div
-        style={group.themeVars}
-        className="flex items-center justify-between gap-4 flex-wrap border-b border-border pb-4"
-      >
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Icon size={20} />
-          </div>
-          <div>
-            {/* div + role : les règles h2/p de wp-admin, hors cascade layer,
-                écrasent les utilitaires Tailwind (marges, taille de police). */}
-            <div id={headingId} role="heading" aria-level={2} className="text-lg font-bold leading-tight text-foreground">
-              {group.label}
-            </div>
-            <div className="mt-0.5 text-sm text-muted-foreground">{group.description}</div>
-          </div>
-        </div>
-        <Badge variant="outline" className="tabular-nums">
-          {activeCount}/{modules.length} actif{activeCount > 1 ? 's' : ''}
-        </Badge>
-      </div>
+    <>
+      <PageHeader
+        icon={<LayoutGrid className="size-[22px]" />}
+        title={status?.user ? `Bonjour, ${status.user}` : 'Tableau de bord'}
+        badge={<StatusBadge>{activeCount} module{activeCount > 1 ? 's' : ''} actif{activeCount > 1 ? 's' : ''}</StatusBadge>}
+        description="Retrouvez l'état de vos modules et ce qui demande votre attention."
+        actions={
+          <Button variant="outline" className={SECONDARY_BUTTON} asChild>
+            <a href={LINKS.documentation} target="_blank" rel="noreferrer">
+              <BookOpen className="size-4" />
+              Documentation
+            </a>
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {modules.map(module => (
-          <ModuleCard
-            key={module.id}
-            module={module}
-            onToggle={onToggle}
-            onNavigate={onNavigate}
-          />
-        ))}
+      <div className="flex flex-col gap-8 px-4 pt-7 pb-12 sm:px-8 xl:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          {alerts.length > 0 && <TodoCard alerts={alerts} modules={modules} onNavigate={onNavigate} />}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-56 flex-1">
+              <div role="heading" aria-level={2} className="text-[17px] font-semibold tracking-[-0.2px] text-foreground">Modules</div>
+              <div className="mt-[3px] text-[13px] text-muted-foreground">Activez uniquement ce dont votre site a besoin.</div>
+            </div>
+            <div role="group" aria-label="Filtrer les modules" className="flex gap-0.5 rounded-lg bg-card p-0.5 ring-1 ring-border">
+              {filters.map(f => {
+                const active = filter === f.value
+                return (
+                  <Button
+                    key={f.value}
+                    type="button"
+                    variant="ghost"
+                    aria-pressed={active}
+                    onClick={() => setFilter(f.value)}
+                    className={cn(
+                      'h-7 rounded-md px-2.5 text-xs',
+                      active
+                        ? 'bg-muted font-semibold text-foreground ring-1 ring-border'
+                        : 'font-medium text-muted-foreground'
+                    )}
+                  >
+                    {f.label}
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+
+          {modules.length === 0 ? (
+            <Card className={PANEL}>
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                Aucun module disponible.
+              </CardContent>
+            </Card>
+          ) : (
+            sections.map(({ group, modules: groupModules }) => (
+              <ModuleGroupCard
+                key={group.id}
+                group={group}
+                modules={groupModules}
+                alerts={alerts}
+                onToggle={handleToggle}
+                onNavigate={onNavigate}
+              />
+            ))
+          )}
+        </div>
+
+        <aside className="flex shrink-0 flex-col gap-5 xl:w-[340px]">
+          <PluginInfoCard status={status} />
+          <ShopCard />
+          <HelpCard version={version} />
+        </aside>
       </div>
-    </section>
+    </>
   )
 }

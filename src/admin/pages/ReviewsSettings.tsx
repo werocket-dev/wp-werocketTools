@@ -358,10 +358,10 @@ function SyncBlock({
                 </span>
               </span>
             ) : (
-              <span className="text-foreground inline-flex items-center gap-1.5">
-                <IconAlertTriangle size={14} className="text-destructive" />
-                <span className="font-medium">Échec :</span>
-                <span className="text-muted-foreground">{last.error}</span>
+              <span className="text-foreground inline-flex items-start gap-1.5">
+                <IconAlertTriangle size={14} className="text-destructive shrink-0 mt-0.5" />
+                <span className="font-medium shrink-0">Échec :</span>
+                <span className="text-muted-foreground break-words min-w-0">{last.error}</span>
               </span>
             )}
           </div>

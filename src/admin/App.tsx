@@ -3,6 +3,8 @@ import { Toaster } from '@/components/ui/sonner'
 import { Header } from './components/Header'
 import { TabsNav } from './components/TabsNav'
 import { GlobalSaveButton } from './components/GlobalSaveButton'
+import { PageHeader } from './components/PageHeader'
+import { StatusBadge } from './components/StatusBadge'
 import { SaveProvider } from './context/SaveContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Dashboard } from './pages/Dashboard'
@@ -13,6 +15,7 @@ import { ClickCollectSettings } from './pages/ClickCollectSettings'
 import { CompanyInfoSettings } from './pages/CompanyInfoSettings'
 import { api } from '@/lib/api'
 import type { Module } from '@/lib/types'
+import { ModuleIcon } from '@/lib/module-icons'
 import { IconAlertTriangle, IconLoader2 } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -43,9 +46,12 @@ export function App() {
       .finally(() => setLoading(false))
   }, [])
 
-  function navigate(newTab: string) {
+  /** `section` : sous-onglet à ouvrir sur la page du module (lu au montage via ?section=). */
+  function navigate(newTab: string, section?: string) {
     const url = new URL(window.location.href)
     url.searchParams.set('tab', newTab)
+    if (section) url.searchParams.set('section', section)
+    else url.searchParams.delete('section')
     window.history.pushState({}, '', url)
     setTab(newTab)
   }
@@ -55,36 +61,54 @@ export function App() {
   }
 
   const pageProps = { modules, onToggle: handleToggle }
+  const currentModule = modules.find(m => m.id === tab)
 
   return (
     <SaveProvider>
-      <div id="werocket-app" className="werocket-wrap">
+      <div id="werocket-app" className="werocket-wrap min-h-[calc(100vh-32px)] bg-background">
         <Header>
-          {!loading && (
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />
-              <GlobalSaveButton />
-            </div>
-          )}
+          {!loading && <TabsNav modules={modules} currentTab={tab} onNavigate={navigate} />}
         </Header>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2 mr-4">
+          <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
             <IconLoader2 size={20} className="animate-spin" />
             <span className="text-sm">Chargement...</span>
           </div>
         ) : (
-          <div className="mr-4">
-            {loadError && <LoadErrorCard message={loadError} />}
+          <>
+            {loadError && (
+              <div className="px-4 sm:px-8">
+                <LoadErrorCard message={loadError} />
+              </div>
+            )}
             <ErrorBoundary resetKey={tab}>
-              {tab === 'dashboard' && <Dashboard {...pageProps} onNavigate={navigate} />}
-              {tab === 'cookies' && <CookiesSettings />}
-              {tab === 'google_reviews' && <ReviewsSettings />}
-              {tab === 'retractation' && <RetractationSettings />}
-              {tab === 'click_collect' && <ClickCollectSettings />}
-              {tab === 'company_info' && <CompanyInfoSettings />}
+              {tab === 'dashboard' ? (
+                <Dashboard {...pageProps} onNavigate={navigate} />
+              ) : (
+                <>
+                  {currentModule && (
+                    <PageHeader
+                      icon={<ModuleIcon id={currentModule.id} className="size-[22px]" />}
+                      title={currentModule.name}
+                      badge={currentModule.active
+                        ? <StatusBadge>Actif</StatusBadge>
+                        : <StatusBadge tone="neutral">Inactif</StatusBadge>}
+                      description={currentModule.description}
+                      actions={<GlobalSaveButton />}
+                    />
+                  )}
+                  <div className="px-4 pt-7 pb-12 sm:px-8">
+                    {tab === 'cookies' && <CookiesSettings />}
+                    {tab === 'google_reviews' && <ReviewsSettings />}
+                    {tab === 'retractation' && <RetractationSettings />}
+                    {tab === 'click_collect' && <ClickCollectSettings />}
+                    {tab === 'company_info' && <CompanyInfoSettings />}
+                  </div>
+                </>
+              )}
             </ErrorBoundary>
-          </div>
+          </>
         )}
 
         <Toaster richColors position="bottom-right" />

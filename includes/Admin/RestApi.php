@@ -35,6 +35,13 @@ class RestApi {
             'permission_callback' => [$this, 'require_admin'],
         ]);
 
+        // GET /dashboard — environnement + alertes « À traiter »
+        register_rest_route($namespace, '/dashboard', [
+            'methods'             => 'GET',
+            'callback'            => fn() => rest_ensure_response((new DashboardStatus($this->module_manager))->get()),
+            'permission_callback' => [$this, 'require_admin'],
+        ]);
+
         // POST /modules/{id}/toggle
         register_rest_route($namespace, '/modules/(?P<id>[a-z0-9_]+)/toggle', [
             'methods'             => 'POST',

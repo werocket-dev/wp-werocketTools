@@ -1,16 +1,11 @@
-import {
-  IconCookie,
-  IconStarFilled,
-  IconArrowBackUp,
-  IconBuildingStore,
-  IconPuzzle,
-} from '@tabler/icons-react'
+import { Building2, Cookie, Puzzle, Star, Store, Undo2, type LucideIcon } from 'lucide-react'
 
-const MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  cookies: IconCookie,
-  google_reviews: IconStarFilled,
-  retractation: IconArrowBackUp,
-  click_collect: IconBuildingStore,
+const MAP: Record<string, LucideIcon> = {
+  cookies: Cookie,
+  google_reviews: Star,
+  retractation: Undo2,
+  click_collect: Store,
+  company_info: Building2,
 }
 
 export function ModuleIcon({ id, size = 18, className }: {
@@ -18,6 +13,6 @@ export function ModuleIcon({ id, size = 18, className }: {
   size?: number
   className?: string
 }) {
-  const Icon = MAP[id] ?? IconPuzzle
+  const Icon = MAP[id] ?? Puzzle
   return <Icon size={size} className={className} />
 }

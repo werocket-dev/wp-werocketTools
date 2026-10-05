@@ -6,3 +6,99 @@
  */
 @import "tailwindcss";
 @import "./_tw-base.css";
+
+/*
+ * ─── Palette admin (maquette « Werocket — Tableau de bord ») ───
+ *
+ * Cette feuille n'est chargée que sur la page du plugin : on y surcharge les
+ * tokens shadcn du preset par la palette chaude de la maquette, sans toucher
+ * aux widgets front qui partagent _tw-base.css. Les composants ne consomment
+ * que des tokens (bg-background, text-muted-foreground…), jamais de hex.
+ */
+@layer base {
+  #werocket-app,
+  .toplevel_page_werocket-tools [data-slot="dialog-content"],
+  .toplevel_page_werocket-tools [data-slot="dialog-overlay"],
+  .toplevel_page_werocket-tools [data-slot="select-content"],
+  .toplevel_page_werocket-tools [data-slot="popover-content"],
+  .toplevel_page_werocket-tools [data-radix-popper-content-wrapper] {
+    --background: #f4f3f1;
+    --foreground: #14120f;
+    --card: #ffffff;
+    --card-foreground: #14120f;
+    --popover: #ffffff;
+    --popover-foreground: #14120f;
+    --primary: #00786f;
+    --primary-foreground: #ffffff;
+    --primary-muted: #e6f4f2;
+    --primary-strong: #005f58;
+    --secondary: #f8f7f5;
+    --secondary-foreground: #14120f;
+    --muted: #f8f7f5;
+    --muted-foreground: #57534e;
+    --subtle-foreground: #8a847c;
+    --accent: #f8f7f5;
+    --accent-foreground: #14120f;
+    --border: #e6e3df;
+    --input: #d4d0ca;
+    --ring: #00786f;
+    --warning: #9a5b00;
+    --warning-muted: #fdf3e1;
+    /* Surfaces sombres (header, carte boutique) */
+    --inverse: #0b0b0a;
+    --inverse-foreground: #ffffff;
+    --inverse-muted-foreground: #a8a29e;
+    --inverse-accent: #5eead4;
+    /* Couleurs de marque des groupes de modules */
+    --brand-wordpress: #21759b;
+    --brand-woocommerce: #7f54b3;
+  }
+}
+
+@theme inline {
+  --color-primary-muted: var(--primary-muted);
+  --color-primary-strong: var(--primary-strong);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-inverse: var(--inverse);
+  --color-inverse-foreground: var(--inverse-foreground);
+  --color-inverse-muted-foreground: var(--inverse-muted-foreground);
+  --color-inverse-accent: var(--inverse-accent);
+  --color-brand-wordpress: var(--brand-wordpress);
+  --color-brand-woocommerce: var(--brand-woocommerce);
+}
+
+/* Page pleine largeur : le header touche les bords de la zone de contenu WP. */
+.toplevel_page_werocket-tools #wpcontent {
+  padding-left: 0;
+}
+.toplevel_page_werocket-tools #wpwrap,
+.toplevel_page_werocket-tools #wpbody-content {
+  background: #f4f3f1;
+}
+.toplevel_page_werocket-tools #wpbody-content {
+  padding-bottom: 0;
+}
+
+/*
+ * ─── Neutralisation des styles wp-admin dans l'app ───
+ *
+ * Les feuilles de wp-admin (forms.css, common.css) sont hors cascade layer :
+ * elles battent les utilitaires Tailwind, rangés dans @layer utilities —
+ * boutons qui héritent police/graisse du parent, liens bleus, marges des
+ * p / li / dd, etc. Une règle hors layer elle aussi, mais plus spécifique,
+ * avec `revert-layer` rend la main aux layers Tailwind (preflight +
+ * utilitaires). Les champs de formulaire ne sont pas concernés : leurs
+ * classes shadcn cohabitent déjà avec forms.css.
+ */
+#werocket-app :is(button, a, p, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd) {
+  font-size: revert-layer;
+  font-weight: revert-layer;
+  line-height: revert-layer;
+  color: revert-layer;
+  margin: revert-layer;
+  padding: revert-layer;
+  text-decoration: revert-layer;
+  box-shadow: revert-layer;
+}
