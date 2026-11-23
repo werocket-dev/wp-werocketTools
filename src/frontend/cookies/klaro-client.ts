@@ -2,7 +2,10 @@ export interface KlaroManager {
   confirmed: boolean
   consents: Record<string, boolean>
   updateConsent(name: string, value: boolean): void
-  saveAndApplyConsents(mode?: true | false): void
+  /** Passe tous les services non requis à `value` (les requis restent à true). */
+  changeAll(value: boolean): number
+  /** L'argument n'est qu'un libellé d'événement : il ne modifie PAS les consentements. */
+  saveAndApplyConsents(eventType?: string): void
 }
 
 declare global {

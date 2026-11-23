@@ -288,7 +288,7 @@ class CookiesModule extends AbstractModule {
                     'title' => 'Google Analytics',
                     'description' => 'Service d\'analyse de trafic fourni par Google.',
                     'purposes' => ['analytics'],
-                    'cookies' => ['_ga', '_gid', '_gat', '__utma', '__utmb', '__utmc', '__utmz'],
+                    'cookies' => ['_ga', '_ga_*', '_gid', '_gat', '__utma', '__utmb', '__utmc', '__utmz'],
                     'required' => false,
                     'default' => false,
                     'opt_out' => false,
@@ -647,25 +647,40 @@ var klaroConfig = <?php echo wp_json_encode($config, JSON_PRETTY_PRINT | JSON_UN
 
 // Google Consent Mode v2 integration
 <?php if (!empty($settings['gcm_enabled'])): ?>
-klaroConfig.callback = function(consent, service) {
-    var analyticsGranted = consent['google-analytics'] || consent['google-tag-manager'];
-    var adsGranted = consent['google-ads'] || consent['google-tag-manager'];
-    var marketingGranted = consent['facebook-pixel'] || consent['linkedin-insight'] || adsGranted;
+// Klaro appelle callback(consent, service) une fois PAR service, avec `consent`
+// booléen (et non un objet { service: bool }). On mémorise l'état de chaque
+// service puis on envoie un seul consent update une fois la passe terminée.
+(function(){
+    var states = {};
+    var timer = null;
 
-    if (typeof gtag === 'function') {
-        gtag('consent', 'update', {
-            'analytics_storage': analyticsGranted ? 'granted' : 'denied',
-            'ad_storage': adsGranted ? 'granted' : 'denied',
-            'ad_user_data': marketingGranted ? 'granted' : 'denied',
-            'ad_personalization': marketingGranted ? 'granted' : 'denied'
-        });
-    }
+    var flush = function() {
+        timer = null;
+        var analyticsGranted = !!(states['google-analytics'] || states['google-tag-manager']);
+        var adsGranted = !!(states['google-ads'] || states['google-tag-manager']);
+        var marketingGranted = !!(adsGranted || states['facebook-pixel'] || states['linkedin-insight']);
 
-    // Dispatch custom event
-    document.dispatchEvent(new CustomEvent('werocket_consent_update', {
-        detail: { consent: consent, service: service }
-    }));
-};
+        if (typeof gtag === 'function') {
+            gtag('consent', 'update', {
+                'analytics_storage': analyticsGranted ? 'granted' : 'denied',
+                'ad_storage': adsGranted ? 'granted' : 'denied',
+                'ad_user_data': marketingGranted ? 'granted' : 'denied',
+                'ad_personalization': marketingGranted ? 'granted' : 'denied'
+            });
+        }
+
+        // Dispatch custom event
+        document.dispatchEvent(new CustomEvent('werocket_consent_update', {
+            detail: { consent: Object.assign({}, states) }
+        }));
+    };
+
+    klaroConfig.callback = function(consent, service) {
+        if (!service || !service.name) return;
+        states[service.name] = !!consent;
+        if (timer === null) timer = setTimeout(flush, 0);
+    };
+})();
 <?php endif; ?>
 </script>
         <?php
