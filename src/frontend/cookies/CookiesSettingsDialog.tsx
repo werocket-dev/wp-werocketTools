@@ -36,10 +36,26 @@ export function CookiesSettingsDialog({ open, onOpenChange, config, onConsentSav
     setConsents(prev => ({ ...prev, [name]: value }))
   }
 
+  function save(next: Record<string, boolean>) {
+    if (!manager) {
+      onOpenChange(false)
+      return
+    }
+    config.services.filter(s => s.enabled).forEach(s => {
+      manager.updateConsent(s.name, s.required || (next[s.name] ?? s.default))
+    })
+    manager.saveAndApplyConsents()
+    onConsentSaved()
+    onOpenChange(false)
+  }
+
+  // « Tout accepter » / « Tout refuser » enregistrent immédiatement (comme dans
+  // le bandeau) : sinon le visiteur ferme la fenêtre sans que rien ne soit sauvé.
   function acceptAll() {
     const all: Record<string, boolean> = {}
     config.services.filter(s => s.enabled).forEach(s => { all[s.name] = true })
     setConsents(all)
+    save(all)
   }
 
   function declineAll() {
@@ -48,19 +64,11 @@ export function CookiesSettingsDialog({ open, onOpenChange, config, onConsentSav
       none[s.name] = s.required
     })
     setConsents(none)
+    save(none)
   }
 
   function saveSelected() {
-    if (!manager) {
-      onOpenChange(false)
-      return
-    }
-    config.services.filter(s => s.enabled).forEach(s => {
-      manager.updateConsent(s.name, consents[s.name] ?? s.default)
-    })
-    manager.saveAndApplyConsents()
-    onConsentSaved()
-    onOpenChange(false)
+    save(consents)
   }
 
   const purposes = Object.entries(config.purposes)
