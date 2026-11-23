@@ -42,14 +42,20 @@ export function CookiesBanner({ config, onOpenSettings, onDismiss }: Props) {
 
   async function acceptAll() {
     const manager = await getKlaroManager()
-    manager?.saveAndApplyConsents(true)
+    if (manager) {
+      manager.changeAll(true)
+      manager.saveAndApplyConsents()
+    }
     setVisible(false)
     onDismiss()
   }
 
   async function declineAll() {
     const manager = await getKlaroManager()
-    manager?.saveAndApplyConsents(false)
+    if (manager) {
+      manager.changeAll(false)
+      manager.saveAndApplyConsents()
+    }
     setVisible(false)
     onDismiss()
   }
