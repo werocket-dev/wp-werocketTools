@@ -33,6 +33,41 @@
 @import "./_tw-base.css";
 
 /*
+ * ─── Accordéon de la fenêtre cookies : pas d'animation de hauteur ───
+ *
+ * Radix mesure la hauteur du contenu en posant `animation-name: none` en style
+ * inline, puis anime de 0 à --radix-accordion-content-height. Ici les
+ * utilitaires sont `!important` (voir plus haut) : `animate-accordion-down`
+ * bat le style inline, l'animation tourne pendant la mesure → Radix mesure
+ * ~16 px (le padding seul), anime jusqu'à 16 px puis saute à la vraie hauteur
+ * (effet saccadé). On coupe donc l'animation de hauteur (dans le layer
+ * utilities, seul moyen de battre un !important layered) et on la remplace par
+ * un fondu du contenu, qui n'influe pas sur la mesure.
+ */
+@layer utilities {
+  [data-slot="dialog-content"] [data-slot="accordion-content"],
+  .werocket-cookies-scope [data-slot="accordion-content"] {
+    animation: none !important;
+  }
+  [data-slot="dialog-content"] [data-slot="accordion-content"][data-state="open"] > div,
+  .werocket-cookies-scope [data-slot="accordion-content"][data-state="open"] > div {
+    animation: werocket-accordion-fade-in 0.18s ease-out !important;
+  }
+}
+@keyframes werocket-accordion-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @layer utilities {
+    [data-slot="dialog-content"] [data-slot="accordion-content"][data-state="open"] > div,
+    .werocket-cookies-scope [data-slot="accordion-content"][data-state="open"] > div {
+      animation: none !important;
+    }
+  }
+}
+
+/*
  * ─── Preflight scopé ───
  *
  * Portage de node_modules/tailwindcss/preflight.css, restreint aux racines des
