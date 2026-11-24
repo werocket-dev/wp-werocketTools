@@ -167,6 +167,16 @@ export function CookiesSettings() {
 
             <Card>
               <CardHeader>
+                <CardTitle className="font-bold">Contenus intégrés</CardTitle>
+                <CardDescription>Contenus tiers chargés uniquement après consentement</CardDescription>
+              </CardHeader>
+              <CardContent className="divide-y divide-border/60 py-0">
+                <SwitchRow label="Bloquer les cartes Google Maps" description="Les cartes intégrées (iframe) ne se chargent qu'après acceptation du service « Google Maps » ; un encart propose de les afficher" name="block_google_maps" watch={watch} setValue={setValue} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle className="font-bold">Éléments visibles</CardTitle>
                 <CardDescription>Masquer certains boutons ou liens du bandeau</CardDescription>
               </CardHeader>

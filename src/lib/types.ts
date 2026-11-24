@@ -230,6 +230,7 @@ export interface CookiesSettings {
   cookie_expires_days: number
   cookie_domain: string
   storage_method: StorageMethod
+  block_google_maps: boolean
   must_consent: boolean
   accept_all: boolean
   hide_decline_all: boolean
