@@ -26,6 +26,7 @@ class CookiesModule extends AbstractModule {
             add_action('wp_head', [$this, 'render_klaro_script'], 3);
             add_action('wp_footer', [$this, 'render_klaro_container'], 1);
             add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
+            add_action('template_redirect', [$this, 'start_google_maps_buffer'], 0);
         }
 
         add_shortcode('werocket_cookie_settings', [$this, 'render_cookie_settings_shortcode']);
@@ -143,7 +144,92 @@ class CookiesModule extends AbstractModule {
     public function get_settings(): array {
         $settings = parent::get_settings();
         $settings['services'] = $this->ensure_essential_services($settings['services'] ?? []);
+        if (!empty($settings['block_google_maps'])) {
+            $settings['services'] = $this->ensure_google_maps_service($settings['services']);
+        }
         return $settings;
+    }
+
+    private const GOOGLE_MAPS_SERVICE = 'google-maps';
+
+    /**
+     * Quand le blocage des cartes est actif, le service « Google Maps » doit
+     * exister et être activé : sans lui, l'iframe réécrite resterait bloquée
+     * sans aucun moyen d'y consentir. Un service déjà présent (personnalisé
+     * dans l'admin) est conservé, seul `enabled` est forcé.
+     */
+    private function ensure_google_maps_service(array $services): array {
+        foreach ($services as $i => $s) {
+            if (is_array($s) && ($s['name'] ?? '') === self::GOOGLE_MAPS_SERVICE) {
+                $services[$i]['enabled'] = true;
+                return $services;
+            }
+        }
+
+        $services[] = [
+            'name' => self::GOOGLE_MAPS_SERVICE,
+            'title' => 'Google Maps',
+            'description' => 'Affichage des cartes Google Maps intégrées au site. Google peut déposer des cookies et collecter des données de navigation.',
+            'purposes' => ['marketing'],
+            'cookies' => ['NID', 'AEC', '1P_JAR', 'CONSENT'],
+            'required' => false,
+            'default' => false,
+            'opt_out' => false,
+            'only_once' => false,
+            'enabled' => true,
+        ];
+        return $services;
+    }
+
+    /**
+     * Démarre un tampon de sortie sur le front pour réécrire les iframes
+     * Google Maps avant envoi : `src` devient `data-src` et `data-name`
+     * rattache l'iframe au service Klaro. Klaro n'injecte la vraie URL
+     * qu'après consentement et affiche d'ici là son encart contextuel.
+     */
+    public function start_google_maps_buffer(): void {
+        if (empty($this->get_settings()['block_google_maps'])) return;
+        if (is_admin() || wp_doing_ajax() || wp_is_json_request() || is_feed() || is_embed() || is_customize_preview()) return;
+        if (defined('REST_REQUEST') && REST_REQUEST) return;
+        // Éditeurs visuels : ne pas bloquer la carte pendant l'édition.
+        foreach (['breakdance', 'breakdance_iframe', 'elementor-preview', 'fl_builder', 'et_fb', 'bricks'] as $param) {
+            if (isset($_GET[$param])) return; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        }
+        if (!apply_filters('werocket_cookies_block_google_maps', true)) return;
+
+        ob_start([$this, 'rewrite_google_maps_iframes']);
+    }
+
+    /**
+     * Callback du tampon : réécrit chaque <iframe> pointant vers Google Maps.
+     * Les iframes déjà prises en charge (attribut data-name) sont laissées telles quelles.
+     */
+    public function rewrite_google_maps_iframes(string $html, int $phase = 0): string {
+        if (stripos($html, '<iframe') === false) return $html;
+
+        $result = preg_replace_callback('/<iframe\b[^>]*>/i', function (array $m): string {
+            $tag = $m[0];
+            if (stripos($tag, 'data-name=') !== false) return $tag;
+            if (!preg_match('/\ssrc\s*=\s*(["\'])(.*?)\1/is', $tag, $src)) return $tag;
+            if (!self::is_google_maps_url(html_entity_decode($src[2], ENT_QUOTES | ENT_HTML5))) return $tag;
+
+            $rewritten = preg_replace('/\ssrc\s*=\s*(["\'])/i', ' data-name="' . self::GOOGLE_MAPS_SERVICE . '" data-src=$1', $tag, 1);
+            return $rewritten ?? $tag;
+        }, $html);
+
+        return $result ?? $html;
+    }
+
+    private static function is_google_maps_url(string $url): bool {
+        if (str_starts_with($url, '//')) $url = 'https:' . $url;
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+        if ($host === '') return false;
+
+        if (preg_match('/^maps\.google\.[a-z.]+$/', $host)) return true;
+        if (preg_match('/^(www\.)?google\.[a-z.]+$/', $host) && str_starts_with($path, '/maps')) return true;
+        if ($host === 'maps.googleapis.com' && str_starts_with($path, '/maps/embed')) return true;
+        return false;
     }
 
     /**
@@ -202,6 +288,9 @@ class CookiesModule extends AbstractModule {
             'opt_out' => false,
             'group_by_purpose' => true,
             'storage_method' => 'cookie', // cookie, localStorage
+
+            // Contenus intégrés : iframes Google Maps bloquées jusqu'au consentement
+            'block_google_maps' => true,
 
             // Appearance
             'theme' => 'light', // light, dark, custom
@@ -432,6 +521,8 @@ class CookiesModule extends AbstractModule {
             'opt_out' => !empty($data['opt_out']),
             'group_by_purpose' => !empty($data['group_by_purpose']),
             'storage_method' => in_array($data['storage_method'] ?? '', $allowed_storage, true) ? $data['storage_method'] : 'cookie',
+            // Absent du payload (ancienne interface) = conserver l'activation par défaut.
+            'block_google_maps' => array_key_exists('block_google_maps', $data) ? !empty($data['block_google_maps']) : true,
 
             // Appearance (strict whitelists)
             'theme' => in_array($data['theme'] ?? '', $allowed_themes, true) ? $data['theme'] : 'light',
@@ -579,7 +670,10 @@ class CookiesModule extends AbstractModule {
 
     public function render_klaro_script(): void {
         ?>
-<style id="werocket-klaro-hide">.klaro .cookie-modal,.klaro .cookie-notice,.klaro .cookie-modal-backdrop{display:none !important}</style>
+<style id="werocket-klaro-hide">.klaro .cookie-modal,.klaro .cookie-notice,.klaro .cookie-modal-backdrop{display:none !important}
+[data-type="placeholder"][data-name]{height:100%;min-height:300px}
+[data-type="placeholder"][data-name] .klaro.cm-as-context-notice,[data-type="placeholder"][data-name] .context-notice{height:100%;min-height:inherit;box-sizing:border-box}
+[data-type="placeholder"][data-name] .context-notice{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.5rem;padding:1.5rem}</style>
 <script defer src="https://cdn.kiprotect.com/klaro/v0.7/klaro.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function(){
@@ -774,6 +868,12 @@ var klaroConfig = <?php echo wp_json_encode($config, JSON_PRETTY_PRINT | JSON_UN
                 'services' => 'services',
             ],
             'purposes' => [],
+            // Encart affiché à la place d'un contenu bloqué (iframe Google Maps…)
+            'contextualConsent' => [
+                'description' => 'Ce contenu est fourni par {title}. Voulez-vous le charger ?',
+                'acceptOnce' => 'Oui, cette fois',
+                'acceptAlways' => 'Toujours',
+            ],
         ];
 
         // Add purpose translations
